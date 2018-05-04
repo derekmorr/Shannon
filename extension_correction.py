@@ -37,7 +37,7 @@ def rc(lines,out_q):
         out_q.put(nl)
 
 def rc_mate_ds(reads_1,reads_2,ds, out_q):
-        nr1 = copy.deepcopy(reads_1);
+        nr1 = copy.deepcopy(reads_1)
         if ds: nr2 = copy.deepcopy(reads_2)
         for (i,read_1) in enumerate(reads_1):
                 nr1[i]=[reads_1[i],reverse_complement(reads_2[i].strip())+'\n']
@@ -53,7 +53,7 @@ def par_read_ns(reads_files,double_stranded, nJobs, ns):
             lines = f.readlines()
         reads = lines[1::2]
         if double_stranded:
-            chunk = int(math.ceil(len(reads)/float(nJobs)));
+            chunk = int(math.ceil(len(reads)/float(nJobs)))
             temp_q = multiprocessing.Queue()
             procs = [multiprocessing.Process(target=rc,args=(reads[x*chunk:(x+1)*chunk],temp_q)) for x in range(nJobs)]
             for p in procs:
@@ -69,10 +69,11 @@ def par_read_ns(reads_files,double_stranded, nJobs, ns):
         with open(reads_files[1]) as f:
             lines_2 = f.readlines()
         assert len(lines_1)==len(lines_2)
-        reads_1 = lines_1[1::2]; reads_2 = lines_2[1::2]
+        reads_1 = lines_1[1::2]
+        reads_2 = lines_2[1::2]
 
         #double_stranded
-        chunk = int(math.ceil(len(reads_1)/float(nJobs)));
+        chunk = int(math.ceil(len(reads_1)/float(nJobs)))
         temp_q = multiprocessing.Queue()
         procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nJobs)]
         for p in procs:
@@ -82,7 +83,8 @@ def par_read_ns(reads_files,double_stranded, nJobs, ns):
             reads.extend(temp_q.get())
         for p in procs:
             p.join()
-        r1 = [r[0] for r in reads]; r2 = [r[1] for r in reads]
+        r1 = [r[0] for r in reads]
+        r2 = [r[1] for r in reads]
         reads = [r1,r2]
         ns.x = reads
     else:
@@ -93,10 +95,9 @@ def par_read(reads_files, double_stranded, nJobs, out_q):
     if len(reads_files)==1:
         with open(reads_files[0]) as f:
             lines = f.readlines()
-        #names = lines[::2]
         reads = lines[1::2]
         if double_stranded:
-            chunk = int(math.ceil(len(reads)/float(nJobs)));
+            chunk = int(math.ceil(len(reads)/float(nJobs)))
             temp_q = multiprocessing.Queue()
             procs = [multiprocessing.Process(target=rc,args=(reads[x*chunk:(x+1)*chunk],temp_q)) for x in range(nJobs)]
             for p in procs:
@@ -112,10 +113,11 @@ def par_read(reads_files, double_stranded, nJobs, out_q):
         with open(reads_files[1]) as f:
             lines_2 = f.readlines()
         assert len(lines_1)==len(lines_2)
-        reads_1 = lines_1[1::2]; reads_2 = lines_2[1::2]
+        reads_1 = lines_1[1::2]
+        reads_2 = lines_2[1::2]
 
         # double_stranded
-        chunk = int(math.ceil(len(reads_1)/float(nJobs)));
+        chunk = int(math.ceil(len(reads_1)/float(nJobs)))
         temp_q = multiprocessing.Queue()
         procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nJobs)]
         for p in procs:
@@ -125,7 +127,8 @@ def par_read(reads_files, double_stranded, nJobs, out_q):
             reads.extend(temp_q.get())
         for p in procs:
             p.join()
-        r1 = [r[0] for r in reads]; r2 = [r[1] for r in reads]
+        r1 = [r[0] for r in reads]
+        r2 = [r[1] for r in reads]
         reads = [r1,r2]
         out_q.put(reads)
     else:
@@ -148,19 +151,22 @@ def argmax(lst, key):
             best = x
     return best
 
-def par_load(lines,ds, polyA_del, out_q):
+def par_load(lines, ds, polyA_del, out_q):
     reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
     d = {}
     for (i,line) in enumerate(lines):
         line=line.strip().split(None,1)
-        if polyA_del and lowComplexity(line[0]): continue
+        if polyA_del and lowComplexity(line[0]):
+            continue
         d[line[0]] = d.get(line[0],0) + float(line[1])
-        if ds: rc = reverse_complement(line[0]); d[rc]=d.get(rc,0)+float(line[1])
+        if ds:
+            rc = reverse_complement(line[0])
+            d[rc]=d.get(rc,0)+float(line[1])
     out_q.put(d)
 
 
 
-def load_kmers_parallel(infile, double_stranded,  polyA_del=True, nJobs = 1):
+def load_kmers_parallel(infile, double_stranded, polyA_del=True, nJobs = 1):
     kmers={}
     with open(infile) as f:
         lines = f.readlines()
@@ -173,7 +179,9 @@ def load_kmers_parallel(infile, double_stranded,  polyA_del=True, nJobs = 1):
     for i in range(nJobs):
         par_dict = out_q.get()
         for key in par_dict:
-            if not K_set: K = len(key); K_set = True
+            if not K_set:
+                K = len(key)
+                K_set = True
             kmers[key] = kmers.get(key,0)+par_dict[key]
 
     for p in procs:
@@ -206,7 +214,8 @@ def load_kmers(infile, double_stranded, polyA_del=True):
 
 def extend(start, extended, unextended, traversed, kmers, K):
     last = unextended(start)
-    tot_weight = 0; tot_kmer=0
+    tot_weight = 0
+    tot_kmer=0
     extension = []
     
     while True:
@@ -215,7 +224,9 @@ def extend(start, extended, unextended, traversed, kmers, K):
             return [extension,tot_weight,tot_kmer]
         
         next_base = argmax(next_bases, lambda b : kmers[extended(last, b)])
-        extension.append(next_base); tot_weight += kmers[extended(last,next_base)]; tot_kmer +=1
+        extension.append(next_base)
+        tot_weight += kmers[extended(last,next_base)]
+        tot_kmer +=1
         last = extended(last, next_base)
         traversed.add(last)
         last = unextended(last)
@@ -232,13 +243,15 @@ def extend_left(start, traversed, kmers, K):
 def duplicate_check(contig, r = 15, f = 0.5):
     # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig
     dup_count = defaultdict(lambda: 1)
-    max_till_now = 0; max_contig_index = -1
+    max_till_now = 0
+    max_contig_index = -1
     for i in range(0, len(contig)-r+1):
         if contig[i:i+r] in rmer_to_contig:
             for dup in rmer_to_contig[contig[i:i+r]]:
                 dup_count[dup] += 1
                 if dup_count[dup] >= max_till_now:
-                    max_till_now = dup_count[dup]; max_contig_index = dup
+                    max_till_now = dup_count[dup]
+                    max_contig_index = dup
     a = numpy.zeros(len(contig))
     for i in range(0, len(contig)-r+1):
         if contig[i:i+r] in rmer_to_contig:
@@ -311,7 +324,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     heaviest = sorted(kmers.items(), key=itemgetter(1))
     traversed, allowed = set(), set()
     f1 = open(outfile+'_contig','w')
-    contig_index = 0;
+    contig_index = 0
     contig_connections = {}
     components_numbers = {}
     contigs = ["buffer"]
@@ -377,7 +390,8 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     allowed_kmer_dict = {}
     with open(outfile, 'w') as f:
         for kmer in allowed:
-            if not inMem: f.write("{:s}\t{:d}\n".format(kmer, int(kmers[kmer])))
+            if not inMem:
+                f.write("{:s}\t{:d}\n".format(kmer, int(kmers[kmer])))
             allowed_kmer_dict[kmer] = int(kmers[kmer])
     del kmers
     f_log.write("{:s}: {:d} K-mers written to file.".format(time.asctime(), len(allowed)) + " \n")
