@@ -5,6 +5,7 @@ import numpy
 import multiprocessing
 import copy
 from operator import itemgetter
+from collections import defaultdict
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
@@ -230,15 +231,12 @@ def extend_left(start, traversed, kmers, K):
 
 def duplicate_check(contig, r = 15, f = 0.5):
     # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig
-    dup_count = {}
+    dup_count = defaultdict(lambda: 1)
     max_till_now = 0; max_contig_index = -1
     for i in range(0, len(contig)-r+1):
         if contig[i:i+r] in rmer_to_contig:
             for dup in rmer_to_contig[contig[i:i+r]]:
-                if dup not in dup_count:
-                    dup_count[dup] = 1
-                else:
-                    dup_count[dup] += 1
+                dup_count[dup] += 1
                 if dup_count[dup] >= max_till_now:
                     max_till_now = dup_count[dup]; max_contig_index = dup
     a = numpy.zeros(len(contig))
