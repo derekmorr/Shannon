@@ -87,7 +87,7 @@ def par_read_ns(reads_files,double_stranded, nJobs, ns):
     else:
         ns.x = []
 
-def par_read(reads_files,double_stranded, nJobs, out_q):
+def par_read(reads_files, double_stranded, nJobs, out_q):
     reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
     if len(reads_files)==1:
         with open(reads_files[0]) as f:
@@ -132,17 +132,15 @@ def par_read(reads_files,double_stranded, nJobs, out_q):
 
 
 def lowComplexity(kmer):
-    #Input: kmer k, Output: whether the kmer is within hamming distance of 2 from all A or all T
-    #allA='A'*len(k);allT='T'*len(k)
-    nA = sum(c == 'A' for c in kmer); 
-    nT = sum(c == 'T' for c in kmer); 
-    nC = sum(c == 'C' for c in kmer);
-    nG = sum(c == 'G' for c in kmer);
-    return max(nA,nC,nG,nT) >= len(kmer)-2 # nA=1 or nonT<=1 or nonC<=1 or nonG<=1
+    """Input: kmer k, Output: whether the kmer is within hamming distance of 2 from all A or all T"""
+    nA = sum(c == 'A' for c in kmer)
+    nT = sum(c == 'T' for c in kmer)
+    nC = sum(c == 'C' for c in kmer)
+    nG = sum(c == 'G' for c in kmer)
+    return max(nA, nC, nG, nT) >= len(kmer) - 2
 
 def argmax(lst, key):
-    """Returns the element x in LST that maximizes KEY(x).
-    """
+    """Returns the element x in LST that maximizes KEY(x)."""
     best = lst[0]
     for x in lst[1:]:
         if key(x) > key(best):
@@ -191,11 +189,13 @@ def load_kmers(infile, double_stranded, polyA_del=True):
     kmers = {}
     with open(infile) as f:
         for line in f:
-            if len(line) == 0: continue
+            if len(line) == 0:
+                continue
             c1.increment()
             kmer, weight = line.split()
             kmer = kmer.upper()
-            if polyA_del and lowComplexity(kmer): continue
+            if polyA_del and lowComplexity(kmer):
+                continue
             weight = (float(weight))
             kmers[kmer] = kmers.get(kmer,0)+weight
             if double_stranded:
@@ -252,7 +252,7 @@ def duplicate_check(contig, r = 15, f = 0.5):
 
 
 def trim_polyA(contig):
-    '''Trim polyA tails if at least last minLen bases are polyA or first minLen bases are polyT'''
+    """Trim polyA tails if at least last minLen bases are polyA or first minLen bases are polyT"""
     minLen = 12
     startLen = 0
     endLen = 0
@@ -482,17 +482,16 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
 
                 
 def extension_correction(arguments,inMem=False):
-    #pdb.set_trace()
     double_stranded = '-d' in arguments
     arguments = [a for a in arguments if len(a) > 0 and a[0] != '-']
 
     infile, outfile = arguments[:2]
     min_weight, min_length = int(arguments[2]), int(arguments[3])
     comp_directory_name, comp_size_threshold = arguments[4], int(arguments[5])
-    if len(arguments)>6:
+    if len(arguments) > 6:
         nJobs = int(arguments[6]) 
     else:
-        nJobs  = 1;
+        nJobs  = 1
     if len(arguments) >7:
         reads_files = [arguments[7]]
         if len(arguments) > 8:
@@ -500,13 +499,10 @@ def extension_correction(arguments,inMem=False):
     else:
         reads_files = []
 
-    #pdb.set_trace()
     allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name, comp_size_threshold, True, inMem, nJobs, reads_files)
     return allowed_kmer_dict, reads
 
 if __name__ == '__main__':
-    #c1 = Counter("Loading", 10**6)
-    #c2 = Counter("Correction", 10**6)
     if len(sys.argv) == 1:
         arguments = ['kmers.dict', 'allowed_kmers.dict', '1', '1', '-d']
     else:
