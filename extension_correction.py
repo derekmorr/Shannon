@@ -1,6 +1,5 @@
 import time
 import sys
-import re
 import pdb,math
 import numpy
 import multiprocessing
@@ -147,14 +146,6 @@ def lowComplexity(kmer):
     nC = sum(c == 'C' for c in kmer);
     nG = sum(c == 'G' for c in kmer);
     return max(nA,nC,nG,nT)>=len(kmer)-2 # nA=1 or nonT<=1 or nonC<=1 or nonG<=1
-    '''noA = 0; noT = 0;
-    for i in range(len(k)):
-        noA += (k[i]=='A');
-        noT += (k[i]=='T');
-    if noA >= len(k)-2 or noT >= len(k)-2:
-        return True #sum((1 for i in range(len(k)) if a[i]=='A')
-    else:
-        return False'''
 
 def argmax(lst, key):
     """Returns the element x in LST that maximizes KEY(x).
@@ -203,7 +194,6 @@ def load_kmers(infile, double_stranded, polyA_del=True):
     """Loads the list of K-mers and copycounts and determines K.
     Returns (kmers, K).
     """
-    #c1 = Counter("Loading", 10**6)
 
     kmers = {}
     with open(infile) as f:
@@ -227,7 +217,8 @@ def extend(start, extended, unextended, traversed, kmers, K):
     
     while True:
         next_bases = [b for b in BASES if extended(last, b) in kmers and extended(last, b) not in traversed]
-        if len(next_bases) == 0: return [extension,tot_weight,tot_kmer]
+        if len(next_bases) == 0:
+            return [extension,tot_weight,tot_kmer]
         
         next_base = argmax(next_bases, lambda b : kmers[extended(last, b)])
         extension.append(next_base); tot_weight += kmers[extended(last,next_base)]; tot_kmer +=1
@@ -263,21 +254,24 @@ def duplicate_check(contig, r = 15, f = 0.5):
             if max_contig_index in rmer_to_contig[contig[i:i+r]]:
                 a[i:i+r] = 1
 
-    if 1: #for dup in dup_count:
-        if sum(a)> f* float(len(contig)):
-            return True
-        else:
-            return False
+    return sum(a) > f * float(len(contig))
            
 
 
 def trim_polyA(contig):
     '''Trim polyA tails if atleast last minLen bases are polyA or first minLen bases are polyT'''
-    minLen = 12; startLen = 0; endLen = 0; startPt = 0
-    maxMiss = 1; startMiss = 0; endMiss = 0; endPt = 0
+    minLen = 12
+    startLen = 0
+    endLen = 0
+    startPt = 0
+
+    maxMiss = 1
+    startMiss = 0
+    endMiss = 0
+    endPt = 0
     for i in range(len(contig)):
         if contig[i] != 'T':
-            startMiss+=1;
+            startMiss+=1
         else:
             startPt = startLen  + 1
         if startMiss > maxMiss:
@@ -289,11 +283,11 @@ def trim_polyA(contig):
 
     for j in range(len(contig)):
         if contig[totLen-1-j] != 'A':
-            endMiss +=1;
+            endMiss +=1
         else:
             endPt = endLen +1
         if endMiss > maxMiss:
-            break;
+            break
         endLen +=1
 
     if startLen < minLen:
@@ -306,60 +300,52 @@ def trim_polyA(contig):
         
 
         
-def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp_directory_name, comp_size_threshold, polyA_del=True, inMem = False,  nJobs =1, reads_files = []):
+def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp_directory_name, comp_size_threshold,
+                   polyA_del=True, inMem = False,  nJobs = 1, reads_files = []):
     print('nJobs:' + str(nJobs))
     print('reads_files:' + ' '.join(reads_files))
     f_log = open(comp_directory_name+"/before_sp_log.txt", 'w')
-    #pdb.set_trace()
     print "{:s}: Starting Kmer error correction..".format(time.asctime())
     f_log.write("{:s}: Starting..".format(time.asctime()) + "\n")
-    if 1: #nJobs==1: 
-        kmers, K = load_kmers(infile, double_stranded,polyA_del)
-    elif nJobs>1:
-        kmers, K = load_kmers_parallel(infile, double_stranded,polyA_del, nJobs)
+    kmers, K = load_kmers(infile, double_stranded,polyA_del)
+
+    # elif nJobs>1:
+        # kmers, K = load_kmers_parallel(infile, double_stranded,polyA_del, nJobs)
 
     print "{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers))
     f_log.write("{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers)) + "\n")
 
     f_log.write("{:s}: Reads loading in background process.".format(time.asctime()) + "\n")
 
-    #out_q = multiprocessing.Queue()
-    #manager = multiprocessing.Manager()
-    #ns = manager.Namespace()
-    #read_proc = multiprocessing.Process(target=par_read_ns,args=(reads_files,double_stranded, nJobs, ns))
-    #read_proc.start()
-
-
-
     heaviest = sorted(kmers.items(), key=itemgetter(1))
-    #heaviest = [(k, w) for k, w in heaviest if w >= min_weight]
     traversed, allowed = set(), set()
     f1 = open(outfile+'_contig','w')
     contig_index = 0;
     contig_connections = {}
     components_numbers = {}
     contigs = ["buffer"]
-    #pdb.set_trace()
     while len(heaviest) > 0:
         start_kmer, w = heaviest.pop()
-        if w < min_weight: break #min_weight is used here
-        if start_kmer in traversed: continue
+        if w < min_weight:
+            break #min_weight is used here
+        if start_kmer in traversed:
+            continue
         traversed.add(start_kmer)
 
         [right_extension,right_kmer_wt,right_kmer_no] = extend_right(start_kmer, traversed, kmers, K)
         [left_extension,left_kmer_wt,left_kmer_no] = extend_left(start_kmer, traversed, kmers, K)
-        tot_wt = right_kmer_wt + left_kmer_wt + kmers[start_kmer];
-        tot_kmer = right_kmer_no + left_kmer_no + 1;
-        avg_wt = tot_wt/max(1,tot_kmer);
+        tot_wt = right_kmer_wt + left_kmer_wt + kmers[start_kmer]
+        tot_kmer = right_kmer_no + left_kmer_no + 1
+        avg_wt = tot_wt/max(1,tot_kmer)
         contig = ''.join(reversed(left_extension)) + start_kmer + ''.join(right_extension)
-        #contig = trim_polyA(contig)
+
 
         r = 15
         duplicate_suspect = duplicate_check(contig, r) #Check whether this contig is significantly represented in a earlier contig. 
-        #pdb.set_trace()
+
         # The line below is the hyperbola error correction.
         if (not correct_errors) or (len(contig) >= min_length and len(contig)*math.pow(avg_wt,1/4.0) >= 2*min_length*math.pow(min_weight,1/4.0) and not duplicate_suspect):
-            f1.write("{:s}\n".format(contig));  
+            f1.write("{:s}\n".format(contig))
             contig_index+=1
             contigs.append(contig)
             if contig_index not in contig_connections:
@@ -371,11 +357,9 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp
             # For graph partitioning
             C = K-1
 
-            #pdb.set_trace()
             for i in range(len(contig) - C +1):
                 if contig[i:i+C] in cmer_to_contig:
                     for contig2_index in cmer_to_contig[contig[i:i+C]]:
-                        #pdb.set_trace()
                         if contig2_index in contig_connections[contig_index] and contig2_index != contig_index:
                             contig_connections[contig_index][contig2_index] += 1
                         elif contig2_index != contig_index:
@@ -387,8 +371,7 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp
                 else:
                     cmer_to_contig[contig[i:i+C]] = []
                 cmer_to_contig[contig[i:i+C]].append(contig_index)     
-                #pdb.set_trace()
-                
+
             # For error correction
             for i in range(len(contig) -r + 1):
                 if contig[i:i+r] in rmer_to_contig:
@@ -400,15 +383,13 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp
     f_log.write("{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)) + " \n")
     
     # Writes out kmers from all allowed contigs
-    if 1:
-        allowed_kmer_dict = {}
-        with open(outfile, 'w') as f:
-            for kmer in allowed:
-                if not inMem: f.write("{:s}\t{:d}\n".format(kmer, int(kmers[kmer])))
-                allowed_kmer_dict[kmer] = int(kmers[kmer])
-        del kmers
-        f_log.write("{:s}: {:d} K-mers written to file.".format(time.asctime(), len(allowed)) + " \n") 
-    #pdb.set_trace()
+    allowed_kmer_dict = {}
+    with open(outfile, 'w') as f:
+        for kmer in allowed:
+            if not inMem: f.write("{:s}\t{:d}\n".format(kmer, int(kmers[kmer])))
+            allowed_kmer_dict[kmer] = int(kmers[kmer])
+    del kmers
+    f_log.write("{:s}: {:d} K-mers written to file.".format(time.asctime(), len(allowed)) + " \n")
 
     # Depth First Search to find components of contig graph.
 
@@ -423,7 +404,6 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp
             component2contig[contig_index] = []
             stack1 = [contig_index]
             seen_before[contig_index] = True
-            #pdb.set_trace()
             while len(stack1) != 0:
                 curr = stack1.pop()
                 contig2component[curr] = contig_index
@@ -449,12 +429,8 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp
                 # write to file here
                 connections_drawn[component][key1] = True
     f_log.write(str(time.asctime()) + ": " + "After Edges Loaded " + "\n")
-    
-    #comp_size_threshold = 1000
-    #comp_directory_name = 'S15_SE_contig_partition2' #'NM_metis_test'
-    
+
     # Build Metis Graph file.
-    #pdb.set_trace()
     new_comp_num = 1
     
     remaining_file_curr_size = 0
@@ -462,68 +438,55 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded, comp
     single_contig_index = 0
     single_contigs = open(comp_directory_name+"/reconstructed_single_contigs.fasta", 'w')
     non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
-    if 1:
-        for component in component2contig:
-            if len(component2contig[component]) == 1:
-                contig_ind = component2contig[component][0]
+    for component in component2contig:
+        if len(component2contig[component]) == 1:
+            contig_ind = component2contig[component][0]
+            contig = contigs[contig_ind]
+            single_contigs.write('>Single_'+ str(single_contig_index)+'\n')
+            single_contigs.write(contig+'\n')
+            single_contig_index+=1
+            continue
+
+        if len(component2contig[component]) > comp_size_threshold:
+            with open(comp_directory_name+"/component" + str(new_comp_num) + ".txt" , 'w') as f:
+                num_nodes = len(component2contig[component])
+                num_edges = len(connections_drawn[component])
+                f.write(str(num_nodes) + "\t" + str(num_edges) + "\t" + "001" + "\n")
+                code = {}
+                i = 1
+                for contig in component2contig[component]:
+                    code[contig] = i
+                    i += 1
+                for contig in component2contig[component]:
+                    for contig2 in contig_connections[contig]:
+                        f.write(str(code[contig2]) + "\t" + str(contig_connections[contig][contig2]) + "\t")
+                    f.write("\n")
+
+            with open(comp_directory_name+"/component" + str(new_comp_num) + "contigs" + ".txt" , 'w') as f:
+                for contig in component2contig[component]:
+                    f.write(contigs[contig] + "\n")
+
+            new_comp_num += 1
+        else:
+            for contig_ind in component2contig[component]:
                 contig = contigs[contig_ind]
-                single_contigs.write('>Single_'+ str(single_contig_index)+'\n')
-                single_contigs.write(contig+'\n')
-                single_contig_index+=1
-                continue
+                non_comp_contigs.write(contig + "\n")
 
-            #pdb.set_trace()
-            if len(component2contig[component]) > comp_size_threshold:
-                with open(comp_directory_name+"/component" + str(new_comp_num) + ".txt" , 'w') as f:
-                    num_nodes = len(component2contig[component])
-                    #pdb.set_trace()
-                    num_edges = len(connections_drawn[component])
-                    f.write(str(num_nodes) + "\t" + str(num_edges) + "\t" + "001" + "\n")
-                    code = {}
-                    i = 1
-                    for contig in component2contig[component]:
-                        code[contig] = i
-                        i += 1
-                    for contig in component2contig[component]:
-                        #f.write(str(contig) + "\t")
-                        for contig2 in contig_connections[contig]:
-                            f.write(str(code[contig2]) + "\t" + str(contig_connections[contig][contig2]) + "\t")
-                        f.write("\n")
-                        
-                with open(comp_directory_name+"/component" + str(new_comp_num) + "contigs" + ".txt" , 'w') as f:
-                    for contig in component2contig[component]:
-                        f.write(contigs[contig] + "\n")
-                        
-                new_comp_num += 1
-            else:
-                for contig_ind in component2contig[component]:
-                    #pdb.set_trace()
-                    contig = contigs[contig_ind]
-                    non_comp_contigs.write(contig + "\n")
-                    
-                remaining_file_curr_size += len(component2contig[component])
-                if remaining_file_curr_size > comp_size_threshold:
-                    remaining_file_num += 1
-                    non_comp_contigs.close()
-                    non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
-                    remaining_file_curr_size = 0
+            remaining_file_curr_size += len(component2contig[component])
+            if remaining_file_curr_size > comp_size_threshold:
+                remaining_file_num += 1
+                non_comp_contigs.close()
+                non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
+                remaining_file_curr_size = 0
 
-                    '''for i in range(len(contig) - K + 1):
-                        kmer = contig[i:i+K]
-                        non_comp_kmers.write(kmer + "\t" + str(int(kmers[kmer])) + "\n")'''
-    
     f_log.write(str(time.asctime()) + ": " + "Metis Input File Created " + "\n")
 
     f_log.write("{:s}: Read-loader in background process joinig back.".format(time.asctime()) + "\n")
-    #reads = out_q.get()
-    #read_proc.join()
-    #reads = ns.x;
     reads = []
     f_log.write("{:s}: {:d} Reads loaded in background process.".format(time.asctime(),len(reads)) + "\n")
     f_log.close()
     return allowed_kmer_dict, reads
-    #pdb.set_trace()
-            
+
                 
 def extension_correction(arguments,inMem=False):
     #pdb.set_trace()
