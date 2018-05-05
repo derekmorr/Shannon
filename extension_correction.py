@@ -320,7 +320,8 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     f_log.write("{:s}: Reads loading in background process.".format(time.asctime()) + "\n")
 
     heaviest = sorted(kmers.items(), key=itemgetter(1))
-    traversed, allowed = set(), set()
+    traversed = set()
+    allowed = set()
     f1 = open(outfile+'_contig','w')
     contig_index = 0
     contig_connections = {}
@@ -407,7 +408,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             component2contig[contig_index] = []
             stack1 = [contig_index]
             seen_before[contig_index] = True
-            while len(stack1) != 0:
+            while stack1:
                 curr = stack1.pop()
                 contig2component[curr] = contig_index
                 component2contig[contig_index].append(curr)
