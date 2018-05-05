@@ -310,7 +310,7 @@ def trim_polyA(contig):
 
         
 def run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name, comp_size_threshold,
-                   polyA_del=True, inMem = False,  nJobs = 1, reads_files = []):
+                   polyA_del=True, inMem = False,  nJobs = 1, reads_files):
     print('nJobs:' + str(nJobs))
     print('reads_files:' + ' '.join(reads_files))
     f_log = open(comp_directory_name+"/before_sp_log.txt", 'w')
@@ -387,7 +387,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 else:
                     rmer_to_contig[contig[i:i+r]] = [contig_index]
     f1.close()
-    log_msg("{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)))
+    log_msg(f_log, "{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)))
     
     # Writes out kmers from all allowed contigs
     allowed_kmer_dict = {}
