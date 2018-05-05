@@ -315,10 +315,11 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     print('reads_files:' + ' '.join(reads_files))
     f_log = open(comp_directory_name+"/before_sp_log.txt", 'w')
     log_msg(f_log, "{:s}: Starting Kmer error correction..".format(time.asctime()))
-    kmers, K = load_kmers(infile, double_stranded,polyA_del)
 
-    # elif nJobs>1:
-        # kmers, K = load_kmers_parallel(infile, double_stranded,polyA_del, nJobs)
+    if nJobs == 1:
+        kmers, K = load_kmers(infile, double_stranded,polyA_del)
+    elif nJobs>1:
+        kmers, K = load_kmers_parallel(infile, double_stranded,polyA_del, nJobs)
 
     log_msg(f_log, "{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers)))
 
