@@ -29,6 +29,13 @@ c2 = Counter("Correction", 10**6)
 
 reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A','N':'N'}[B] for B in x][::-1])
 
+def log_msg(file_handle, msg):
+    """prints a message to the console and writes it to file_handle."""
+    print(msg)
+    file_handle.write(msg + "\n")
+    file_handle.flush()
+    return None
+
 
 def rc(lines,out_q):
         nl = copy.deepcopy(lines)
@@ -307,15 +314,13 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     print('nJobs:' + str(nJobs))
     print('reads_files:' + ' '.join(reads_files))
     f_log = open(comp_directory_name+"/before_sp_log.txt", 'w')
-    print "{:s}: Starting Kmer error correction..".format(time.asctime())
-    f_log.write("{:s}: Starting..".format(time.asctime()) + "\n")
+    log_msg(f_log, "{:s}: Starting Kmer error correction..".format(time.asctime()))
     kmers, K = load_kmers(infile, double_stranded,polyA_del)
 
     # elif nJobs>1:
         # kmers, K = load_kmers_parallel(infile, double_stranded,polyA_del, nJobs)
 
-    print "{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers))
-    f_log.write("{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers)) + "\n")
+    log_msg(f_log, "{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers)))
 
     f_log.write("{:s}: Reads loading in background process.".format(time.asctime()) + "\n")
 
@@ -381,8 +386,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 else:
                     rmer_to_contig[contig[i:i+r]] = [contig_index]
     f1.close()
-    print "{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed))
-    f_log.write("{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)) + " \n")
+    log_msg("{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)))
     
     # Writes out kmers from all allowed contigs
     allowed_kmer_dict = {}
@@ -393,10 +397,12 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             allowed_kmer_dict[kmer] = int(kmers[kmer])
     del kmers
     f_log.write("{:s}: {:d} K-mers written to file.".format(time.asctime(), len(allowed)) + " \n")
+    f_log.flush()
 
     # Depth First Search to find components of contig graph.
 
-    f_log.write(str(time.asctime()) + ": " +"Before dfs " + "\n")
+    f_log.write(str(time.asctime()) + ": Before dfs " + "\n")
+    f_log.flush()
     
     contig2component = {}
     component2contig = {}
@@ -416,7 +422,8 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                         stack1.append(connected)
                         seen_before[connected] = True
 
-    f_log.write(str(time.asctime()) + ": " + "After dfs " + "\n")                       
+    f_log.write(str(time.asctime()) + ": After dfs " + "\n")
+    f_log.flush()
     # Finds all connections for Metis graph file.
        
     connections_drawn = {}
@@ -431,7 +438,8 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             if key1 not in connections_drawn[component]:
                 # write to file here
                 connections_drawn[component][key1] = True
-    f_log.write(str(time.asctime()) + ": " + "After Edges Loaded " + "\n")
+    f_log.write(str(time.asctime()) + ": After Edges Loaded " + "\n")
+    f_log.flush()
 
     # Build Metis Graph file.
     new_comp_num = 1
@@ -482,11 +490,13 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
                 remaining_file_curr_size = 0
 
-    f_log.write(str(time.asctime()) + ": " + "Metis Input File Created " + "\n")
+    f_log.write(str(time.asctime()) + ": Metis Input File Created " + "\n")
+    f_log.flush()
 
-    f_log.write("{:s}: Read-loader in background process joinig back.".format(time.asctime()) + "\n")
+    f_log.write("{:s}: Read-loader in background process joining back.".format(time.asctime()) + "\n")
+    f_log.flush()
     reads = []
-    f_log.write("{:s}: {:d} Reads loaded in background process.".format(time.asctime(),len(reads)) + "\n")
+    f_log.write("{:s}: {:d} Reads loaded in background process.".format(time.asctime(), len(reads)) + "\n")
     f_log.close()
     return allowed_kmer_dict, reads
 
