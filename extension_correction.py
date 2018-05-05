@@ -325,7 +325,6 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     f1 = open(outfile+'_contig','w')
     contig_index = 0
     contig_connections = {}
-    components_numbers = {}
     contigs = ["buffer"]
     while len(heaviest) > 0:
         start_kmer, w = heaviest.pop()
