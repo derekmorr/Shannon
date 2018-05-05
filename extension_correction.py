@@ -210,7 +210,7 @@ def load_kmers(infile, double_stranded, polyA_del=True):
     K = len(kmers.keys()[0])
     return kmers, K
 
-def extend(start, extended, unextended, traversed, kmers, K):
+def extend(start, extended, unextended, traversed, kmers):
     last = unextended(start)
     tot_weight = 0
     tot_kmer=0
@@ -218,7 +218,7 @@ def extend(start, extended, unextended, traversed, kmers, K):
     
     while True:
         next_bases = [b for b in BASES if extended(last, b) in kmers and extended(last, b) not in traversed]
-        if len(next_bases) == 0:
+        if not next_bases:
             return [extension,tot_weight,tot_kmer]
         
         next_base = argmax(next_bases, lambda b : kmers[extended(last, b)])
@@ -232,11 +232,11 @@ def extend(start, extended, unextended, traversed, kmers, K):
 
 def extend_right(start, traversed, kmers, K):
     return extend(start, lambda last, b: last + b, lambda kmer: kmer[-(K - 1):],
-        traversed, kmers, K)
+        traversed, kmers)
 
 def extend_left(start, traversed, kmers, K):
     return extend(start, lambda last, b: b + last, lambda kmer: kmer[:K - 1],
-        traversed, kmers, K)
+        traversed, kmers)
 
 def duplicate_check(contig, r = 15, f = 0.5):
     # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig
