@@ -9,7 +9,6 @@ from collections import defaultdict
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
-rmer_to_contig = {}
 contig_to_rmer = {}
 cmer_to_contig = {}
 
@@ -245,7 +244,7 @@ def extend_left(start, traversed, kmers, K):
     return extend(start, lambda last, b: b + last, lambda kmer: kmer[:K - 1],
         traversed, kmers)
 
-def duplicate_check(contig, r = 15, f = 0.5):
+def duplicate_check(contig, rmer_to_contig, r = 15, f = 0.5):
     # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig
     dup_count = defaultdict(lambda: 1)
     max_till_now = 0
@@ -332,6 +331,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     contig_index = 0
     contig_connections = {}
     contigs = ["buffer"]
+    rmer_to_contig = {}
     while len(heaviest) > 0:
         start_kmer, w = heaviest.pop()
         if w < min_weight:
@@ -347,9 +347,9 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
         avg_wt = tot_wt/max(1,tot_kmer)
         contig = ''.join(reversed(left_extension)) + start_kmer + ''.join(right_extension)
 
-
         r = 15
-        duplicate_suspect = duplicate_check(contig, r) #Check whether this contig is significantly represented in a earlier contig. 
+        #Check whether this contig is significantly represented in a earlier contig.
+        duplicate_suspect = duplicate_check(contig, rmer_to_contig, r)
 
         # The line below is the hyperbola error correction.
         if (not correct_errors) or (len(contig) >= min_length and len(contig)*math.pow(avg_wt,1/4.0) >= 2*min_length*math.pow(min_weight,1/4.0) and not duplicate_suspect):
