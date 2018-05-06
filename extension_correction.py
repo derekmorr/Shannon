@@ -9,7 +9,6 @@ from collections import defaultdict
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
-contig_to_rmer = {}
 cmer_to_contig = {}
 
 class Counter():
