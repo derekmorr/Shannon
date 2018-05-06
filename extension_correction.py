@@ -9,7 +9,6 @@ from collections import defaultdict
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
-cmer_to_contig = {}
 
 class Counter():
     def __init__(self, name, report_length):
@@ -331,6 +330,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     contig_connections = {}
     contigs = ["buffer"]
     rmer_to_contig = {}
+    cmer_to_contig = {}
     while len(heaviest) > 0:
         start_kmer, w = heaviest.pop()
         if w < min_weight:
