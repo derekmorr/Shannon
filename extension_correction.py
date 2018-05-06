@@ -10,6 +10,7 @@ from collections import defaultdict
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
 
+
 class Counter():
     def __init__(self, name, report_length):
         self.name = name
@@ -21,10 +22,12 @@ class Counter():
         if self.count % self.report_length == 0:
             print "{:s}: {:s}, processed {:d} kmers".format(time.asctime(), self.name, self.count)
 
+
 c1 = Counter("Loading", 10**6)
 c2 = Counter("Correction", 10**6)
 
-reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A','N':'N'}[B] for B in x][::-1])
+reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}[B] for B in x][::-1])
+
 
 def log_msg(file_handle, msg):
     """prints a message to the console and writes it to file_handle."""
@@ -34,31 +37,35 @@ def log_msg(file_handle, msg):
     return None
 
 
-def rc(lines,out_q):
+def rc(lines, out_q):
         nl = copy.deepcopy(lines)
-        for (i,line) in enumerate(lines):
-                nl[i]=(reverse_complement(line.strip())+'\n')
+        for (i, line) in enumerate(lines):
+                nl[i] = (reverse_complement(line.strip())+'\n')
         out_q.put(nl)
 
-def rc_mate_ds(reads_1,reads_2,ds, out_q):
+
+def rc_mate_ds(reads_1, reads_2, ds, out_q):
         nr1 = copy.deepcopy(reads_1)
-        if ds: nr2 = copy.deepcopy(reads_2)
-        for (i,read_1) in enumerate(reads_1):
-                nr1[i]=[reads_1[i],reverse_complement(reads_2[i].strip())+'\n']
-                if ds: nr2[i]=[reads_2[i],reverse_complement(reads_1[i].strip())+'\n']
-        if ds: nr1.extend(nr2)
+        if ds:
+            nr2 = copy.deepcopy(reads_2)
+        for (i, read_1) in enumerate(reads_1):
+                nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())+'\n']
+                if ds:
+                    nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())+'\n']
+        if ds:
+            nr1.extend(nr2)
         out_q.put(nr1)
 
 
-def par_read_ns(reads_files,double_stranded, nJobs, ns):
-    if len(reads_files)==1:
+def par_read_ns(reads_files, double_stranded, nJobs, ns):
+    if len(reads_files) == 1:
         with open(reads_files[0]) as f:
             lines = f.readlines()
         reads = lines[1::2]
         if double_stranded:
             chunk = int(math.ceil(len(reads)/float(nJobs)))
             temp_q = multiprocessing.Queue()
-            procs = [multiprocessing.Process(target=rc,args=(reads[x*chunk:(x+1)*chunk],temp_q)) for x in range(nJobs)]
+            procs = [multiprocessing.Process(target=rc, args=(reads[x*chunk:(x+1)*chunk], temp_q)) for x in range(nJobs)]
             for p in procs:
                 p.start()
             for i in range(nJobs):
@@ -66,19 +73,19 @@ def par_read_ns(reads_files,double_stranded, nJobs, ns):
             for p in procs:
                 p.join()
         ns.x = reads
-    elif len(reads_files)==2:
+    elif len(reads_files) == 2:
         with open(reads_files[0]) as f:
             lines_1 = f.readlines()
         with open(reads_files[1]) as f:
             lines_2 = f.readlines()
-        assert len(lines_1)==len(lines_2)
+        assert len(lines_1) == len(lines_2)
         reads_1 = lines_1[1::2]
         reads_2 = lines_2[1::2]
 
-        #double_stranded
+        # double_stranded
         chunk = int(math.ceil(len(reads_1)/float(nJobs)))
         temp_q = multiprocessing.Queue()
-        procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nJobs)]
+        procs = [multiprocessing.Process(target=rc_mate_ds, args=(reads_1[x*chunk:(x+1)*chunk], reads_2[x*chunk:(x+1)*chunk], double_stranded, temp_q)) for x in range(nJobs)]
         for p in procs:
             p.start()
         reads = []
@@ -88,20 +95,21 @@ def par_read_ns(reads_files,double_stranded, nJobs, ns):
             p.join()
         r1 = [r[0] for r in reads]
         r2 = [r[1] for r in reads]
-        reads = [r1,r2]
+        reads = [r1, r2]
         ns.x = reads
     else:
         ns.x = []
 
+
 def par_read(reads_files, double_stranded, nJobs, out_q):
-    if len(reads_files)==1:
+    if len(reads_files) == 1:
         with open(reads_files[0]) as f:
             lines = f.readlines()
         reads = lines[1::2]
         if double_stranded:
             chunk = int(math.ceil(len(reads)/float(nJobs)))
             temp_q = multiprocessing.Queue()
-            procs = [multiprocessing.Process(target=rc,args=(reads[x*chunk:(x+1)*chunk],temp_q)) for x in range(nJobs)]
+            procs = [multiprocessing.Process(target=rc, args=(reads[x*chunk:(x+1)*chunk], temp_q)) for x in range(nJobs)]
             for p in procs:
                 p.start()
             for i in range(nJobs):
@@ -109,19 +117,19 @@ def par_read(reads_files, double_stranded, nJobs, out_q):
             for p in procs:
                 p.join()
         out_q.put(reads)
-    elif len(reads_files)==2:
+    elif len(reads_files) == 2:
         with open(reads_files[0]) as f:
             lines_1 = f.readlines()
         with open(reads_files[1]) as f:
             lines_2 = f.readlines()
-        assert len(lines_1)==len(lines_2)
+        assert len(lines_1) == len(lines_2)
         reads_1 = lines_1[1::2]
         reads_2 = lines_2[1::2]
 
         # double_stranded
         chunk = int(math.ceil(len(reads_1)/float(nJobs)))
         temp_q = multiprocessing.Queue()
-        procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nJobs)]
+        procs = [multiprocessing.Process(target=rc_mate_ds, args=(reads_1[x*chunk:(x+1)*chunk], reads_2[x*chunk:(x+1)*chunk], double_stranded, temp_q)) for x in range(nJobs)]
         for p in procs:
             p.start()
         reads = []
@@ -131,7 +139,7 @@ def par_read(reads_files, double_stranded, nJobs, out_q):
             p.join()
         r1 = [r[0] for r in reads]
         r2 = [r[1] for r in reads]
-        reads = [r1,r2]
+        reads = [r1, r2]
         out_q.put(reads)
     else:
         out_q.put([])
@@ -145,6 +153,7 @@ def lowComplexity(kmer):
     nG = sum(c == 'G' for c in kmer)
     return max(nA, nC, nG, nT) >= len(kmer) - 2
 
+
 def argmax(lst, key):
     """Returns the element x in LST that maximizes KEY(x)."""
     best = lst[0]
@@ -153,28 +162,28 @@ def argmax(lst, key):
             best = x
     return best
 
+
 def par_load(lines, ds, polyA_del, out_q):
-    reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
+    reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}[B] for B in x][::-1])
     d = {}
-    for (i,line) in enumerate(lines):
-        line=line.strip().split(None,1)
+    for (i, line) in enumerate(lines):
+        line = line.strip().split(None, 1)
         if polyA_del and lowComplexity(line[0]):
             continue
-        d[line[0]] = d.get(line[0],0) + float(line[1])
+        d[line[0]] = d.get(line[0], 0) + float(line[1])
         if ds:
             rc = reverse_complement(line[0])
-            d[rc]=d.get(rc,0)+float(line[1])
+            d[rc] = d.get(rc, 0) + float(line[1])
     out_q.put(d)
 
 
-
-def load_kmers_parallel(infile, double_stranded, polyA_del=True, nJobs = 1):
-    kmers={}
+def load_kmers_parallel(infile, double_stranded, polyA_del=True, nJobs=1):
+    kmers = {}
     with open(infile) as f:
         lines = f.readlines()
-    chunk = int(math.ceil(len(lines)/float(nJobs)))
+    chunk = int(math.ceil(len(lines) / float(nJobs)))
     out_q = multiprocessing.Queue()
-    procs = [multiprocessing.Process(target=par_load,args=(lines[x*chunk:(x+1)*chunk],double_stranded, polyA_del, out_q)) for x in range(nJobs)]
+    procs = [multiprocessing.Process(target=par_load, args=(lines[x*chunk:(x+1)*chunk], double_stranded, polyA_del, out_q)) for x in range(nJobs)]
     for p in procs:
         p.start()
     K_set = False
@@ -184,12 +193,12 @@ def load_kmers_parallel(infile, double_stranded, polyA_del=True, nJobs = 1):
             if not K_set:
                 K = len(key)
                 K_set = True
-            kmers[key] = kmers.get(key,0)+par_dict[key]
+            kmers[key] = kmers.get(key, 0) + par_dict[key]
 
     for p in procs:
         p.join()
     print(len(kmers))
-    return kmers,K
+    return kmers, K
 
 
 def load_kmers(infile, double_stranded, polyA_del=True):
@@ -208,41 +217,43 @@ def load_kmers(infile, double_stranded, polyA_del=True):
             if polyA_del and lowComplexity(kmer):
                 continue
             weight = (float(weight))
-            kmers[kmer] = kmers.get(kmer,0)+weight
+            kmers[kmer] = kmers.get(kmer, 0) + weight
             if double_stranded:
-                kmers[reverse_complement(kmer)] = kmers.get(reverse_complement(kmer),0)+weight
+                kmers[reverse_complement(kmer)] = kmers.get(reverse_complement(kmer), 0) + weight
     K = len(kmers.keys()[0])
     return kmers, K
+
 
 def extend(start, extended, unextended, traversed, kmers):
     last = unextended(start)
     tot_weight = 0
-    tot_kmer=0
+    tot_kmer = 0
     extension = []
     
     while True:
         next_bases = [b for b in BASES if extended(last, b) in kmers and extended(last, b) not in traversed]
         if not next_bases:
-            return [extension,tot_weight,tot_kmer]
-        
-        next_base = argmax(next_bases, lambda b : kmers[extended(last, b)])
+            return [extension, tot_weight, tot_kmer]
+
+        next_base = argmax(next_bases, lambda b: kmers[extended(last, b)])
         extension.append(next_base)
-        tot_weight += kmers[extended(last,next_base)]
-        tot_kmer +=1
+        tot_weight += kmers[extended(last, next_base)]
+        tot_kmer += 1
         last = extended(last, next_base)
         traversed.add(last)
         last = unextended(last)
         c2.increment()
 
+
 def extend_right(start, traversed, kmers, K):
-    return extend(start, lambda last, b: last + b, lambda kmer: kmer[-(K - 1):],
-        traversed, kmers)
+    return extend(start, lambda last, b: last + b, lambda kmer: kmer[-(K - 1):], traversed, kmers)
+
 
 def extend_left(start, traversed, kmers, K):
-    return extend(start, lambda last, b: b + last, lambda kmer: kmer[:K - 1],
-        traversed, kmers)
+    return extend(start, lambda last, b: b + last, lambda kmer: kmer[:K - 1], traversed, kmers)
 
-def duplicate_check(contig, rmer_to_contig, r = 15, f = 0.5):
+
+def duplicate_check(contig, rmer_to_contig, r=15, f=0.5):
     # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig
     dup_count = defaultdict(lambda: 1)
     max_till_now = 0
@@ -277,46 +288,44 @@ def trim_polyA(contig):
     endPt = 0
     for i in range(len(contig)):
         if contig[i] != 'T':
-            startMiss+=1
+            startMiss += 1
         else:
-            startPt = startLen  + 1
+            startPt = startLen + 1
         if startMiss > maxMiss:
             break
-        startLen +=1
-    
+        startLen += 1
+
     totLen = len(contig)
-    
 
     for j in range(len(contig)):
         if contig[totLen-1-j] != 'A':
-            endMiss +=1
+            endMiss += 1
         else:
-            endPt = endLen +1
+            endPt = endLen + 1
         if endMiss > maxMiss:
             break
-        endLen +=1
+        endLen += 1
 
     if startLen < minLen:
         startLen = 0
- 
+
     if endLen < minLen:
         endLen = 0
- 
-    return contig[startPt:totLen-endPt]
-        
 
-        
+    return contig[startPt:totLen-endPt]
+
+
 def run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name, comp_size_threshold,
-                   polyA_del, inMem,  nJobs, reads_files):
+                   polyA_del, inMem, nJobs, reads_files):
     print('nJobs:' + str(nJobs))
     print('reads_files:' + ' '.join(reads_files))
     f_log = open(comp_directory_name+"/before_sp_log.txt", 'w')
     log_msg(f_log, "{:s}: Starting Kmer error correction..".format(time.asctime()))
 
     if nJobs == 1:
-        kmers, K = load_kmers(infile, double_stranded,polyA_del)
-    elif nJobs>1:
-        kmers, K = load_kmers_parallel(infile, double_stranded,polyA_del, nJobs)
+        kmers, K = load_kmers(infile, double_stranded, polyA_del)
+    elif nJobs > 1:
+        kmers, K = load_kmers_parallel(infile, double_stranded, polyA_del, nJobs)
 
     log_msg(f_log, "{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers)))
 
@@ -325,7 +334,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     heaviest = sorted(kmers.items(), key=itemgetter(1))
     traversed = set()
     allowed = set()
-    f1 = open(outfile+'_contig','w')
+    f1 = open(outfile+'_contig', 'w')
     contig_index = 0
     contig_connections = {}
     contigs = ["buffer"]
@@ -334,37 +343,37 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     while len(heaviest) > 0:
         start_kmer, w = heaviest.pop()
         if w < min_weight:
-            break #min_weight is used here
+            break  # min_weight is used here
         if start_kmer in traversed:
             continue
         traversed.add(start_kmer)
 
-        [right_extension,right_kmer_wt,right_kmer_no] = extend_right(start_kmer, traversed, kmers, K)
-        [left_extension,left_kmer_wt,left_kmer_no] = extend_left(start_kmer, traversed, kmers, K)
+        [right_extension, right_kmer_wt, right_kmer_no] = extend_right(start_kmer, traversed, kmers, K)
+        [left_extension, left_kmer_wt, left_kmer_no] = extend_left(start_kmer, traversed, kmers, K)
         tot_wt = right_kmer_wt + left_kmer_wt + kmers[start_kmer]
         tot_kmer = right_kmer_no + left_kmer_no + 1
-        avg_wt = tot_wt/max(1,tot_kmer)
+        avg_wt = tot_wt / max(1, tot_kmer)
         contig = ''.join(reversed(left_extension)) + start_kmer + ''.join(right_extension)
 
         r = 15
-        #Check whether this contig is significantly represented in a earlier contig.
+        # Check whether this contig is significantly represented in a earlier contig.
         duplicate_suspect = duplicate_check(contig, rmer_to_contig, r)
 
         # The line below is the hyperbola error correction.
-        if (not correct_errors) or (len(contig) >= min_length and len(contig)*math.pow(avg_wt,1/4.0) >= 2*min_length*math.pow(min_weight,1/4.0) and not duplicate_suspect):
+        if (not correct_errors) or (len(contig) >= min_length and len(contig)*math.pow(avg_wt, 1/4.0) >= 2*min_length*math.pow(min_weight, 1/4.0) and not duplicate_suspect):
             f1.write("{:s}\n".format(contig))
-            contig_index+=1
+            contig_index += 1
             contigs.append(contig)
             if contig_index not in contig_connections:
                 contig_connections[contig_index] = {}
             # For adding new kmers
-            for i in range(len(contig) - K +1):
+            for i in range(len(contig) - K + 1):
                 allowed.add(contig[i:i+K])
-                
+
             # For graph partitioning
             C = K-1
 
-            for i in range(len(contig) - C +1):
+            for i in range(len(contig) - C + 1):
                 if contig[i:i+C] in cmer_to_contig:
                     for contig2_index in cmer_to_contig[contig[i:i+C]]:
                         if contig2_index in contig_connections[contig_index] and contig2_index != contig_index:
@@ -377,7 +386,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                             contig_connections[contig2_index][contig_index] = 1
                 else:
                     cmer_to_contig[contig[i:i+C]] = []
-                cmer_to_contig[contig[i:i+C]].append(contig_index)     
+                cmer_to_contig[contig[i:i+C]].append(contig_index)
 
             # For error correction
             for i in range(len(contig) - r + 1):
@@ -387,7 +396,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                     rmer_to_contig[contig[i:i+r]] = [contig_index]
     f1.close()
     log_msg(f_log, "{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)))
-    
+
     # Writes out kmers from all allowed contigs
     allowed_kmer_dict = {}
     with open(outfile, 'w') as f:
@@ -403,11 +412,11 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
 
     f_log.write(str(time.asctime()) + ": Before dfs " + "\n")
     f_log.flush()
-    
+
     contig2component = {}
     component2contig = {}
     seen_before = {}
-    # Some 
+    # Some
     for contig_index in contig_connections:
         if contig_index not in contig2component:
             component2contig[contig_index] = []
@@ -425,7 +434,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     f_log.write(str(time.asctime()) + ": After dfs " + "\n")
     f_log.flush()
     # Finds all connections for Metis graph file.
-       
+
     connections_drawn = {}
     for component in component2contig:
         connections_drawn[component] = {}
@@ -443,23 +452,23 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
 
     # Build Metis Graph file.
     new_comp_num = 1
-    
+
     remaining_file_curr_size = 0
     remaining_file_num = 1
     single_contig_index = 0
     single_contigs = open(comp_directory_name+"/reconstructed_single_contigs.fasta", 'w')
-    non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
+    non_comp_contigs = open(comp_directory_name+"/remaining_contigs" + str(remaining_file_num) + ".txt", 'w')
     for component in component2contig:
         if len(component2contig[component]) == 1:
             contig_ind = component2contig[component][0]
             contig = contigs[contig_ind]
-            single_contigs.write('>Single_'+ str(single_contig_index)+'\n')
-            single_contigs.write(contig+'\n')
-            single_contig_index+=1
+            single_contigs.write('>Single_' + str(single_contig_index)+'\n')
+            single_contigs.write(contig + '\n')
+            single_contig_index += 1
             continue
 
         if len(component2contig[component]) > comp_size_threshold:
-            with open(comp_directory_name+"/component" + str(new_comp_num) + ".txt" , 'w') as f:
+            with open(comp_directory_name+"/component" + str(new_comp_num) + ".txt", 'w') as f:
                 num_nodes = len(component2contig[component])
                 num_edges = len(connections_drawn[component])
                 f.write(str(num_nodes) + "\t" + str(num_edges) + "\t" + "001" + "\n")
@@ -473,7 +482,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                         f.write(str(code[contig2]) + "\t" + str(contig_connections[contig][contig2]) + "\t")
                     f.write("\n")
 
-            with open(comp_directory_name+"/component" + str(new_comp_num) + "contigs" + ".txt" , 'w') as f:
+            with open(comp_directory_name+"/component" + str(new_comp_num) + "contigs" + ".txt", 'w') as f:
                 for contig in component2contig[component]:
                     f.write(contigs[contig] + "\n")
 
@@ -500,7 +509,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     f_log.close()
     return allowed_kmer_dict, reads
 
-                
+
 def extension_correction(arguments, inMem=False):
     double_stranded = '-d' in arguments
     arguments = [a for a in arguments if len(a) > 0 and a[0] != '-']
@@ -511,9 +520,9 @@ def extension_correction(arguments, inMem=False):
     comp_directory_name = arguments[4]
     comp_size_threshold = int(arguments[5])
     if len(arguments) > 6:
-        nJobs = int(arguments[6]) 
+        nJobs = int(arguments[6])
     else:
-        nJobs  = 1
+        nJobs = 1
     if len(arguments) > 7:
         reads_files = [arguments[7]]
         if len(arguments) > 8:
@@ -524,6 +533,7 @@ def extension_correction(arguments, inMem=False):
     allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length, double_stranded,
                                                comp_directory_name, comp_size_threshold, True, inMem, nJobs, reads_files)
     return allowed_kmer_dict, reads
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
