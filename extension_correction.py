@@ -381,7 +381,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 cmer_to_contig[contig[i:i+C]].append(contig_index)     
 
             # For error correction
-            for i in range(len(contig) -r + 1):
+            for i in range(len(contig) - r + 1):
                 if contig[i:i+r] in rmer_to_contig:
                     rmer_to_contig[contig[i:i+r]].append(contig_index)
                 else:
@@ -502,25 +502,28 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     return allowed_kmer_dict, reads
 
                 
-def extension_correction(arguments,inMem=False):
+def extension_correction(arguments, inMem=False):
     double_stranded = '-d' in arguments
     arguments = [a for a in arguments if len(a) > 0 and a[0] != '-']
 
     infile, outfile = arguments[:2]
-    min_weight, min_length = int(arguments[2]), int(arguments[3])
-    comp_directory_name, comp_size_threshold = arguments[4], int(arguments[5])
+    min_weight = int(arguments[2])
+    min_length = int(arguments[3])
+    comp_directory_name = arguments[4]
+    comp_size_threshold = int(arguments[5])
     if len(arguments) > 6:
         nJobs = int(arguments[6]) 
     else:
         nJobs  = 1
-    if len(arguments) >7:
+    if len(arguments) > 7:
         reads_files = [arguments[7]]
         if len(arguments) > 8:
             reads_files.append(arguments[8])
     else:
         reads_files = []
 
-    allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name, comp_size_threshold, True, inMem, nJobs, reads_files)
+    allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length, double_stranded,
+                                               comp_directory_name, comp_size_threshold, True, inMem, nJobs, reads_files)
     return allowed_kmer_dict, reads
 
 if __name__ == '__main__':
