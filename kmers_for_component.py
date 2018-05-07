@@ -27,19 +27,23 @@ reverse_complement = lambda x: ''.join([D[B] for B in x[::-1]])
 
 
 def rc(lines,out_q):
-        nl = copy.deepcopy(lines)
-        for (i,line) in enumerate(lines):
-                nl[i]=(reverse_complement(line.strip()))
-        out_q.put(nl)
+    nl = copy.deepcopy(lines)
+    for (i, line) in enumerate(lines):
+            nl[i] = (reverse_complement(line.strip()))
+    out_q.put(nl)
+
 
 def rc_mate_ds(reads_1,reads_2,ds, out_q):
-        nr1 = copy.deepcopy(reads_1)
-        if ds: nr2 = copy.deepcopy(reads_2)
-        for (i,read_1) in enumerate(reads_1):
-                nr1[i]=[reads_1[i],reverse_complement(reads_2[i].strip())]
-                if ds: nr2[i]=[reads_2[i],reverse_complement(reads_1[i].strip())]
-        if ds: nr1.extend(nr2)
-        out_q.put(nr1)
+    nr1 = copy.deepcopy(reads_1)
+    if ds:
+        nr2 = copy.deepcopy(reads_2)
+    for (i, read_1) in enumerate(reads_1):
+        nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())]
+        if ds: nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())]
+    if ds:
+        nr1.extend(nr2)
+    out_q.put(nr1)
+
 
 def par_read(reads_files,double_stranded, nJobs):
     reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
@@ -51,7 +55,7 @@ def par_read(reads_files,double_stranded, nJobs):
             chunk = min(1000000, len(reads))
             nProcs = int(math.ceil(len(reads)/float(chunk)))
             temp_q = multiprocessing.Queue()
-            procs = [multiprocessing.Process(target=rc,args=(reads[x*chunk:(x+1)*chunk],temp_q)) for x in range(nProcs)]
+            procs = [multiprocessing.Process(target=rc, args=(reads[x*chunk:(x+1)*chunk], temp_q)) for x in range(nProcs)]
             split_procs = []
 
             for i in range(int(math.ceil(float(nProcs)/nJobs))):
@@ -71,7 +75,7 @@ def par_read(reads_files,double_stranded, nJobs):
             lines_1 = f.readlines()
         with open(reads_files[1]) as f:
             lines_2 = f.readlines()
-        assert len(lines_1)==len(lines_2)
+        assert len(lines_1) == len(lines_2)
         reads_1 = lines_1[1::2]
         reads_2 = lines_2[1::2]
         # double_stranded:
@@ -79,7 +83,7 @@ def par_read(reads_files,double_stranded, nJobs):
         nProcs = int(math.ceil(len(reads_1)/float(chunk)))
 
         temp_q = multiprocessing.Queue()
-        procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nProcs)]
+        procs = [multiprocessing.Process(target=rc_mate_ds, args=(reads_1[x*chunk:(x+1)*chunk], reads_2[x*chunk:(x+1)*chunk], double_stranded, temp_q)) for x in range(nProcs)]
         split_procs = []
         for i in range(int(math.ceil(float(nProcs)/nJobs))):
             split_procs.append(procs[(i)*nJobs:(i+1)*nJobs])
@@ -99,7 +103,7 @@ def par_read(reads_files,double_stranded, nJobs):
         return []
 
 
-def par_SE_rc(reads,nJobs):
+def par_SE_rc(reads, nJobs):
     chunk = int(math.ceil(len(reads)/float(nJobs)))
     temp_q = multiprocessing.Queue()
     procs = [multiprocessing.Process(target=rc,args=(reads[x*chunk:(x+1)*chunk],temp_q)) for x in range(nJobs)]
@@ -112,10 +116,10 @@ def par_SE_rc(reads,nJobs):
     return reads
 
 
-def par_PE_rc(reads_1,reads_2,double_stranded,nJobs):
+def par_PE_rc(reads_1, reads_2, double_stranded ,nJobs):
     chunk = int(math.ceil(len(reads_1)/float(nJobs)))
     temp_q = multiprocessing.Queue()
-    procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nJobs)]
+    procs = [multiprocessing.Process(target=rc_mate_ds, args=(reads_1[x*chunk:(x+1)*chunk], reads_2[x*chunk:(x+1)*chunk], double_stranded, temp_q)) for x in range(nJobs)]
     reads = []
     for proc in procs:
         proc.start()
