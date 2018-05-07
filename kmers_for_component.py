@@ -74,28 +74,27 @@ def par_read(reads_files,double_stranded, nJobs):
         assert len(lines_1)==len(lines_2)
         reads_1 = lines_1[1::2]
         reads_2 = lines_2[1::2]
-        if 1:  # double_stranded:
-            chunk = min(1000000, len(reads_1))
-            nProcs = int(math.ceil(len(reads_1)/float(chunk)))
+        # double_stranded:
+        chunk = min(1000000, len(reads_1))
+        nProcs = int(math.ceil(len(reads_1)/float(chunk)))
 
-            temp_q = multiprocessing.Queue()
-            procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nProcs)]
-            split_procs = []
-            for i in range(int(math.ceil(float(nProcs)/nJobs))):
-                split_procs.append(procs[(i)*nJobs:(i+1)*nJobs])
-            reads = []
-            for curr_procs in split_procs:
-                for p in curr_procs:
-                    p.start()
-                for i in range(len(curr_procs)):
-                    reads.extend(temp_q.get())
-                for p in curr_procs:
-                    p.join()
-            print(str(len(reads)) + ' Reads loaded')
-            r1 = [r[0] for r in reads]
-            r2 = [r[1] for r in reads]
-            reads = [r1,r2]    
-        return reads
+        temp_q = multiprocessing.Queue()
+        procs = [multiprocessing.Process(target=rc_mate_ds,args=(reads_1[x*chunk:(x+1)*chunk],reads_2[x*chunk:(x+1)*chunk],double_stranded,temp_q)) for x in range(nProcs)]
+        split_procs = []
+        for i in range(int(math.ceil(float(nProcs)/nJobs))):
+            split_procs.append(procs[(i)*nJobs:(i+1)*nJobs])
+        reads = []
+        for curr_procs in split_procs:
+            for p in curr_procs:
+                p.start()
+            for i in range(len(curr_procs)):
+                reads.extend(temp_q.get())
+            for p in curr_procs:
+                p.join()
+        print(str(len(reads)) + ' Reads loaded')
+        r1 = [r[0] for r in reads]
+        r2 = [r[1] for r in reads]
+        return [r1, r2]
     else:
         return []
 
@@ -264,27 +263,25 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                             j += 1                        
                          
         # Adds remaining components to k1mers2component
-        if 1:
-            for i in range(Num_Remaining_Components):
-                with open(directory_name + "/remaining_contigs" + str(i+1) + ".txt", 'r') as remaining_contigs_file:
-                    if 1:
-                        lines = remaining_contigs_file.readlines()
-                        comp = "cremaining" + str(i+1)
-                        j = 0
-                        for line in lines:
-                            tokens = line.split()
-                            contig = tokens[0]
-                            if comp not in new_components:
-                                new_components[comp] = [contig]
-                            else:
-                                new_components[comp].append(contig)
-                            for each in range(len(contig)-(K+1) + 1):
-                                k1mer = contig[each:each+(K+1)]
-                                if k1mer not in k1mers2component:
-                                    k1mers2component[k1mer] = [set([comp]), k1mer_dictionary.get(k1mer, 0)]
-                                else:
-                                    k1mers2component[k1mer][0].add(comp)
-                            j += 1                             
+        for i in range(Num_Remaining_Components):
+            with open(directory_name + "/remaining_contigs" + str(i+1) + ".txt", 'r') as remaining_contigs_file:
+                lines = remaining_contigs_file.readlines()
+                comp = "cremaining" + str(i+1)
+                j = 0
+                for line in lines:
+                    tokens = line.split()
+                    contig = tokens[0]
+                    if comp not in new_components:
+                        new_components[comp] = [contig]
+                    else:
+                        new_components[comp].append(contig)
+                    for each in range(len(contig)-(K+1) + 1):
+                        k1mer = contig[each:each+(K+1)]
+                        if k1mer not in k1mers2component:
+                            k1mers2component[k1mer] = [set([comp]), k1mer_dictionary.get(k1mer, 0)]
+                        else:
+                            k1mers2component[k1mer][0].add(comp)
+                    j += 1
 
         write_log(str(time.asctime()) + ": " + "k1mers2component dictionary created ")
 
