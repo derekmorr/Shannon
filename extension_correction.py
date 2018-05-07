@@ -163,17 +163,20 @@ def argmax(lst, key):
     return best
 
 
-def par_load(lines, ds, polyA_del, out_q):
+def par_load(lines, double_stranded, polyA_del, out_q):
+    """Loads the list of K-mers and copycounts and determines K.
+    Returns (kmers, K) in out_q.
+    """
     reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}[B] for B in x][::-1])
-    d = {}
+    d = defaultdict(lambda: 0)
     for (i, line) in enumerate(lines):
-        line = line.strip().split(None, 1)
-        if polyA_del and lowComplexity(line[0]):
+        kmer, weight = line.strip().split()
+        if polyA_del and lowComplexity(kmer):
             continue
-        d[line[0]] = d.get(line[0], 0) + float(line[1])
-        if ds:
-            rc = reverse_complement(line[0])
-            d[rc] = d.get(rc, 0) + float(line[1])
+        d[kmer] += float(weight)
+        if double_stranded:
+            rc = reverse_complement(kmer)
+            d[rc] += float(weight)
     out_q.put(d)
 
 
