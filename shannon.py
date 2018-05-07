@@ -447,10 +447,6 @@ if run_extension_corr:
 	dontWriteToFile = True
 	k1mer_dictionary, reads = extension_correction(str_ec.split(), dontWriteToFile)
 
-# Gets kmers from k1mers
-'''if run_jellyfish or run_extension_corr:
-	run_cmd('python ' + shannon_dir + 'kp1mer_to_kmer.py ' + sample_name_input+'algo_input/k1mer.dict ' + sample_name_input+'algo_input/kmer.dict')'''
-
 # Runs gpmetis to partition components of size above "partition_size" into partitions of size "partition_size"
 # Gets k1mers, kmers, and reads for each partition
 [components_broken, new_components, contig_weights, rps] = kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, base_directory_name, contig_file_extension, get_partition_kmers, double_stranded, paired_end, use_second_iteration, partition_size, overload, K, gpmetis_path, penalty, only_reads, inMem, nJobs)
