@@ -11,7 +11,7 @@ import copy
 import run_MB_SF_fn
 import multiprocessing as mp
 import run_parallel_cmds
-import rc_gnu 
+import rc_gnu
 import filter_kallisto
 
 from kmers_for_component import kmers_for_component
@@ -20,7 +20,7 @@ from extension_correction import  extension_correction
 from operator import itemgetter
 
 # Set Paths
-shannon_dir = os.path.dirname(os.path.abspath(sys.argv[0])) + '/' 
+shannon_dir = os.path.dirname(os.path.abspath(sys.argv[0])) + '/'
 gpmetis_path = 'gpmetis'
 jellyfish_path = 'jellyfish'
 gnu_parallel_path = 'parallel'
@@ -31,7 +31,7 @@ kallisto_path = 'kallisto'
 
 # For version
 version = '0.0.2'
-	
+
 # Meta-option to choose whether parameters are passed in memory or in disk
 inMem = False
 inDisk = not inMem
@@ -72,7 +72,7 @@ fastq = False
 run_quorum = False
 run_kallisto = False
 # Everything beyond this point does not need to be set
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 def run_cmd(s1):
@@ -184,7 +184,7 @@ if '--inDisk' in n_inp:
 	inMem = False
 	inDisk = True
 	n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-	print('OPTIONS --inDisk: In Memory mode disabled')	
+	print('OPTIONS --inDisk: In Memory mode disabled')
 
 if '--filter_FP' in n_inp:
 	ind1 = n_inp.index('--filter_FP')
@@ -221,14 +221,14 @@ if '--partition' in n_inp:
 	ind1 = n_inp.index('--partition')
 	partition_size = int(n_inp[ind1+1])
 	n_inp = n_inp[:ind1] + n_inp[ind1+2:]
-	print('OPTIONS --partition: Partition size set to ' + str(partition_size))	
-	
+	print('OPTIONS --partition: Partition size set to ' + str(partition_size))
+
 if '--only_reads' in n_inp:
 	ind1 = n_inp.index('--only_reads')
 	n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-	print('OPTIONS --only_reads: Reads are partitioned but kmers are recomputed.')	
+	print('OPTIONS --only_reads: Reads are partitioned but kmers are recomputed.')
 	only_reads = True
-	
+
 if '-K' in n_inp:
 	ind1 = n_inp.index('-K')
 	K = int(n_inp[ind1+1])
@@ -310,14 +310,14 @@ if '--kallisto_cutoff' in n_inp:
 		n_inp = n_inp[:ind1] + n_inp[ind1+2:]
 		print('OPTIONS --kallisto_cutoff: Kallisto will be run to filter low expression transcripts below ' + str(kallisto_cutoff))
 	else:
-		n_inp = n_inp[:ind1]+n_inp[ind1+2:] 
+		n_inp = n_inp[:ind1]+n_inp[ind1+2:]
 		print('OPTIONS WARNING: --kallisto_cutoff NOT enabled. Option only works with fastq input.')
 
 if n_inp:
 	print('OPTIONS WARNING: Following options not parsed: ' + " ".join(n_inp))
 
 if exit_now:
-	print('Try running python shannon.py --help for a short manual')   
+	print('Try running python shannon.py --help for a short manual')
 	sys.exit()
 else:
     print('--------------------------------------------')
@@ -336,11 +336,11 @@ if run_parallel:
 
 if run_kallisto:
 	test_install_kallisto()
-	
+
 paired_end_flag = ""
 if paired_end:
 	paired_end_flag = " --paired_end "
-	
+
 
 # For extension correction
 sample_name = comp_directory_name.split('/')[-1] + "_"
@@ -355,7 +355,7 @@ kmer_directory = sample_name_input + "algo_input"
 base_directory_name = comp_directory_name
 contig_file_extension = "contigs.txt"
 
-randomize = False 
+randomize = False
 
 if use_partitioning == False:
 	partition_size = 100000000000000000000000000000000000000000000000000000000000000000
@@ -419,7 +419,7 @@ print "Processed No of reads:" + str(N) + ", Avg. Read length: " + str(L)
 double_stranded = False
 # ----------------------
 
-reads_string = ' '.join(reads_files)    
+reads_string = ' '.join(reads_files)
 # Runs Jellyfish
 if run_jellyfish:
 	print "{:s}: Starting Jellyfish to extract Kmers from Reads..".format(time.asctime())
@@ -455,7 +455,7 @@ k1mer_dictionary.clear() #Delete in memory
 components_broken.clear()
 # This counts remaining and non-remaining partitions for log.
 num_remaining = 0
-num_non_remaining = 0 
+num_non_remaining = 0
 for part in new_components:
 	if 'remaining' in part:
 		num_remaining += 1
@@ -472,7 +472,7 @@ print(str(time.asctime()) + ": " + "Number of simple Partitions: " + str(num_rem
 f_log.write(str(time.asctime()) + ": " + "Number of complex Partitions: " + str(num_non_remaining) + "\n")
 print(str(time.asctime()) + ": " + "Number of complex Partitions: " + str(num_non_remaining) + "\n")
 f_log.close()
-		
+
 # parameters for main_server call
 main_server_parameter_string = ""
 main_server_og_parameter_string = ""
@@ -492,12 +492,12 @@ for comp in new_components:
 
 	if not only_reads:  # if only_reads, no need to copy k1mers
 		run_cmd("mv " + base_directory_name + "/component" + str(comp) + "k1mers_allowed.dict " + dir_base + "algo_input/k1mer.dict")
-	main_server_parameter_string = main_server_parameter_string + dir_base + " " 
+	main_server_parameter_string = main_server_parameter_string + dir_base + " "
 
 	child_names = [x[0][:-10] for x in os.walk(comp_directory_name) if x[0].endswith('algo_input') and not x[0].endswith('_algo_input') and not x[0].endswith('allalgo_input')]
 	main_server_parameter_string = ' '.join(child_names)
 
-		
+
 # Run run_MB_SF.py for each partition in parallel
 mb_sf_param_string = " "
 if only_reads:
@@ -522,7 +522,7 @@ elif inMem:
 	contig_size = {}
 
 	for comp in new_components:
-		dir_base = comp_directory_name + "/" + sample_name + str(comp)	
+		dir_base = comp_directory_name + "/" + sample_name + str(comp)
 		param_str[comp] = dir_base + " --run_alg " + mb_sf_param_string + " --kmer_size " + str(K)  + " " + paired_end_flag + " --dir_name " + comp_directory_name + " " + dir_base + " --shannon_dir " + shannon_dir + " --python_path " + python_path
 		contig_size[comp] = sum(len(cw_vec) for cw_vec in contig_weights[comp])
 
@@ -532,7 +532,7 @@ elif inMem:
 		return [row[i] for row in matrix]
 	sorted_comps = get_column(sorted_contig_vec, 0)
 	run_MBSF_processes = [mp.Process(target=run_MB_SF_fn.run_MB_SF, args=(param_str[comp], inMem, new_components[comp], contig_weights[comp], rps[comp])) for comp in sorted_comps]
-	
+
 	nProc = float(len(run_MBSF_processes))
 	nJobs = nJobs
 	split_MBSF_processes = []
@@ -567,7 +567,7 @@ for comp in new_components:
 	dir_base = comp_directory_name + "/" + sample_name + str(comp)
 	dir_out = dir_base + "algo_output"
 	reconstructed_files += (dir_out + '/' + 'reconstructed.fasta ')
-	
+
 # Creates new directory with concatenation of all reconstructed files
 dir_base = comp_directory_name + "/" + sample_name + "all"
 dir_out = dir_base + "algo_output"
@@ -582,7 +582,7 @@ if find_reps:
 	run_cmd('cat ' + dir_out + "/reconstructed_org.fasta | perl -e 'while (<>) {$h=$_; $s=<>; $seqs{$h}=$s;} foreach $header (sort {length($seqs{$a}) <=> length($seqs{$b})} keys %seqs) {print $header.$seqs{$header}}' > " +  dir_out + "/reconstructed_sorted.fasta ")
 	run_cmd(python_path + ' ' + shannon_dir + 'faster_reps.py -d ' + dir_out + "/reconstructed_sorted.fasta " + dir_out + "/reconstructed.fasta ")
 	f_log.write(str(time.asctime()) + ': Representative outputs found.\n')
-else:	
+else:
 	run_cmd('mv ' + dir_out + "/reconstructed_org.fasta " + dir_out + "/reconstructed.fasta ")
 
 #------Filter using Kallisto-------#
@@ -591,7 +591,7 @@ if run_kallisto:
 	kal_ab_file = filter_kallisto.run_kallisto(dir_out + "/rec_before_kallisto.fasta", dir_out + "/kallisto", original_reads_files, original_ds, kallisto_path, nJobs)
 	L = L * len(original_reads_files)  # Multiply L by 2 if paired ended to get effective read length of fragment.
 	filter_kallisto.filter_using_kallisto(dir_out + "/rec_before_kallisto.fasta", kal_ab_file, dir_out + "/reconstructed.fasta", kallisto_cutoff, L)
-	
+
 
 
 
