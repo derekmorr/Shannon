@@ -178,7 +178,7 @@ def par_load(lines, ds, polyA_del, out_q):
 
 
 def load_kmers_parallel(infile, double_stranded, polyA_del=True, nJobs=1):
-    kmers = {}
+    kmers = defaultdict(lambda: 0)
     with open(infile) as f:
         lines = f.readlines()
     chunk = int(math.ceil(len(lines) / float(nJobs)))
@@ -193,7 +193,7 @@ def load_kmers_parallel(infile, double_stranded, polyA_del=True, nJobs=1):
             if not K_set:
                 K = len(key)
                 K_set = True
-            kmers[key] = kmers.get(key, 0) + par_dict[key]
+            kmers[key] += par_dict[key]
 
     for p in procs:
         p.join()
@@ -206,7 +206,7 @@ def load_kmers(infile, double_stranded, polyA_del=True):
     Returns (kmers, K).
     """
 
-    kmers = {}
+    kmers = defaultdict(lambda: 0)
     with open(infile) as f:
         for line in f:
             if not line:
@@ -216,10 +216,10 @@ def load_kmers(infile, double_stranded, polyA_del=True):
             kmer = kmer.upper()
             if polyA_del and lowComplexity(kmer):
                 continue
-            weight = (float(weight))
-            kmers[kmer] = kmers.get(kmer, 0) + weight
+            weight = float(weight)
+            kmers[kmer] += weight
             if double_stranded:
-                kmers[reverse_complement(kmer)] = kmers.get(reverse_complement(kmer), 0) + weight
+                kmers[reverse_complement(kmer)] += weight
     K = len(kmers.keys()[0])
     return kmers, K
 
