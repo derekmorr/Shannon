@@ -316,10 +316,6 @@ if '--kallisto_cutoff' in n_inp:
 if n_inp:
 	print('OPTIONS WARNING: Following options not parsed: ' + " ".join(n_inp))
 
-
-	''''with open('manual.md','r') as fin:
-		print fin.read()'''
-
 if exit_now:
 	print('Try running python shannon.py --help for a short manual')   
 	sys.exit()
