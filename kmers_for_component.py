@@ -1,5 +1,5 @@
 import time
-import pdb,math
+import math
 import os
 import os.path
 import copy
@@ -221,8 +221,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
         
         new_components = {}
         k1mers2component = {}
-        kmers2component = {}
-                
+
         # Builds k1mer2component dictionary
         for i in components_broken:
             with open(directory_name + "/component" + str(i+1) + contig_file_extension, 'r') as f_contigs:
@@ -288,9 +287,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                             j += 1                             
 
         write_log(str(time.asctime()) + ": " + "k1mers2component dictionary created ")
-        
-        read_line =''
-        
+
         # Assigns reads to components in the non paired end case
         NR = 10000000
         if not paired_end:
@@ -350,7 +347,6 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                 reads_2 = []
                 while 1:
                     readname_1 = f1.readline()[:-1]
-                    readname_2 = f2.readline()[:-1]
                     if not readname_1:
                         last_read = readname_1
                         break
