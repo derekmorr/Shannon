@@ -361,7 +361,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                     if (read_ctr % NR) == 0 or (not read_1):
                         break
                 if double_stranded:
-                    reads = par_PE_rc(reads_1,reads_2,double_stranded,nJobs)
+                    reads = par_PE_rc(reads_1, reads_2, double_stranded, nJobs)
                 if not double_stranded:
                     reads = [[reads_1[i],reads_2[i]] for i in range(len(reads_1))]
                 del reads_1
@@ -392,8 +392,8 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                 for comp in new_components:
                     read1_part_file = open(directory_name + "/reads" + str(comp) + "_1.fasta", 'a')
                     read2_part_file = open(directory_name + "/reads" + str(comp) + "_2.fasta", 'a')
-                    read1_part_file.write("".join(['>' + str(e+offset.get(comp, 0)) + '_1\n' + read + '\n' for (e,read) in enumerate(read1_part_seq[comp])]))
-                    read2_part_file.write("".join(['>' + str(e+offset.get(comp, 0)) + '_2\n' + read + '\n' for (e,read) in enumerate(read2_part_seq[comp])]))
+                    read1_part_file.write("".join(['>' + str(e+offset.get(comp, 0)) + '_1\n' + read + '\n' for (e, read) in enumerate(read1_part_seq[comp])]))
+                    read2_part_file.write("".join(['>' + str(e+offset.get(comp, 0)) + '_2\n' + read + '\n' for (e, read) in enumerate(read2_part_seq[comp])]))
                     read1_part_file.close()
                     read2_part_file.close()
                     offset[comp] = offset.get(comp,0) + len(read1_part_seq[comp])
