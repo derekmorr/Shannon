@@ -43,7 +43,7 @@ def rc_mate_ds(reads_1,reads_2,ds, out_q):
 
 def par_read(reads_files,double_stranded, nJobs):
     reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
-    if len(reads_files)==1:
+    if len(reads_files) == 1:
         with open(reads_files[0]) as f:
             lines = f.readlines()
         reads = lines[1::2]
@@ -75,7 +75,7 @@ def par_read(reads_files,double_stranded, nJobs):
         assert len(lines_1)==len(lines_2)
         reads_1 = lines_1[1::2]
         reads_2 = lines_2[1::2]
-        if 1: #double_stranded:
+        if 1:  # double_stranded:
             chunk = min(1000000, len(reads_1))
             nProcs = int(math.ceil(len(reads_1)/float(chunk)))
 
@@ -311,7 +311,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                     read = f.readline()[:-1]
                     if read.strip('ACTG'):
                         continue
-                    read_ctr +=1
+                    read_ctr += 1
                     reads.append(read)
                     last_read = read
                     if (read_ctr % NR) == (0) or (not read):
@@ -389,7 +389,6 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                 if not last_read:
                     break
 
-
             if not inMem: 
                 for comp in new_components:
                     read1_part_file = open(directory_name+"/reads"+str(comp)+"_1.fasta", 'a')
@@ -409,7 +408,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
         write_log(str(time.asctime()) + ": " + "reads partititoned ")        
 
         contig_weights = {}
-        if not only_reads: #If only_reads, no need to write k1mers
+        if not only_reads:  # If only_reads, no need to write k1mers
             write_log(str(time.asctime()) + ": Writing k1mers to file")
             # Writes out k1mers with weights for each partition
             for comp in new_components:
