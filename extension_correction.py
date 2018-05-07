@@ -209,7 +209,7 @@ def load_kmers(infile, double_stranded, polyA_del=True):
     kmers = {}
     with open(infile) as f:
         for line in f:
-            if len(line) == 0:
+            if not line:
                 continue
             c1.increment()
             kmer, weight = line.split()
