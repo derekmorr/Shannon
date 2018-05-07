@@ -24,11 +24,7 @@ class Counter():
 
 D = {'A':'T','C':'G','G':'C','T':'A', 'N':'N'}
 reverse_complement = lambda x: ''.join([D[B] for B in x[::-1]])
-'''def reverse_complement(bases):
-    replacements = [('A', 't'), ('T', 'a'), ('C', 'g'), ('G', 'c')]
-    for ch1, ch2 in replacements:
-        bases = re.sub(ch1, ch2, bases)
-    return bases[::-1].upper()'''
+
 
 def rc(lines,out_q):
         nl = copy.deepcopy(lines)
@@ -169,14 +165,6 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
         i += 1
         Num_Remaining_Components += 1   
     
-    # def find_comps(comp_dict, tries):
-    #     #Only the exact 
-    #     (comp,hits) = max(comp_dict.iteritems(), key=operator.itemgetter(1))
-    #     if hits>=tries:
-    #         return set(comp)
-    #     else:
-    #         return set()
-
     def get_rmers(read,R):
         i = 0
         k1mers = []
@@ -301,17 +289,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
 
         write_log(str(time.asctime()) + ": " + "k1mers2component dictionary created ")
         
-        '''no_kmers_in_comp = {}
-        for comp in new_components:
-            temp = 0
-            for contig in new_components[comp]:
-                temp += len(contig)
-            no_kmers_in_comp[comp] = temp'''
-
-        '''iter_tag = "_c"
-        if second_iteration:
-            iter_tag = "_r2_c"'''
-        read_line =''   
+        read_line =''
         
         # Assigns reads to components in the non paired end case
         NR=10000000
