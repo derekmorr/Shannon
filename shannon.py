@@ -112,7 +112,7 @@ exit_now = test_install(jellyfish_path, gpmetis_path)
 n_inp = sys.argv[1:]
 if '--help' in n_inp:
     with open('manual.md', 'r') as fin:
-        print fin.read()
+        print(fin.read())
     exit_now = True
     sys.exit()
 

@@ -21,7 +21,7 @@ class Counter(object):
     def increment(self):
         self.count += 1
         if self.count % self.report_length == 0:
-            print "{:s}: {:s}, processed {:d} kmers".format(time.asctime(), self.name, self.count)
+            print("{:s}: {:s}, processed {:d} kmers".format(time.asctime(), self.name, self.count))
 
 
 c1 = Counter("Loading", 10**6)
