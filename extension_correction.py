@@ -34,7 +34,7 @@ reverse_complement = \
 def rc(lines, out_q):
     nl = copy.deepcopy(lines)
     for (i, line) in enumerate(lines):
-            nl[i] = (reverse_complement(line.strip())+'\n')
+        nl[i] = (reverse_complement(line.strip())+'\n')
     out_q.put(nl)
 
 
@@ -227,7 +227,7 @@ def extend(start, extended, unextended, traversed, kmers):
     tot_weight = 0
     tot_kmer = 0
     extension = []
-    
+
     while True:
         next_bases = [b for b in BASES if extended(last, b) in kmers and extended(last, b) not in traversed]
         if not next_bases:
@@ -359,7 +359,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     logger.addHandler(stdout_handler)
 
     logger.info('nJobs: %d', nJobs)
-    logger.info('reads_files: %s',  ' '.join(reads_files))
+    logger.info('reads_files: %s', ' '.join(reads_files))
     logger.info("Starting Kmer error correction.")
 
     if nJobs == 1:
