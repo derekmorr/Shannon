@@ -6,23 +6,14 @@ import copy
 import multiprocessing
 from weight_updated_graph import weight_updated_graph
 
+
 def run_cmd(s1):
     print(s1)
     os.system(s1)
 
-class Counter():
-    """Used for printing the number of kmers processed"""
-    def __init__(self, name, report_length):
-        self.name = name
-        self.count = 0
-        self.report_length = report_length
 
-    def increment(self):
-        self.count += 1
-        if self.count % self.report_length == 0:
-            print "{:s}: {:s}, processed {:d}".format(time.asctime(), self.name, self.count)
+D = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
 
-D = {'A':'T', 'C':'G', 'G':'C', 'T':'A', 'N':'N'}
 reverse_complement = lambda x: ''.join([D[B] for B in x[::-1]])
 
 
