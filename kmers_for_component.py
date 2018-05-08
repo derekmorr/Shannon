@@ -222,7 +222,7 @@ def kmers_for_component(k1mer_dictionary, reads, reads_files, directory_name,
                         # Rerun GPMETIS file for repartition
                         run_cmd(gpmetis_path + " -ufactor=" + str(ufactor) + " " + directory_name + "/component" + str(i + 1) + "r2.txt " + str(Partitions))
 
-        logger.info("gpmetis for partitioning is complete \n " + temp_string)
+        logger.info("gpmetis for partitioning is complete %s", temp_string)
 
         new_components = {}
         k1mers2component = {}
@@ -429,9 +429,9 @@ def kmers_for_component(k1mer_dictionary, reads, reads_files, directory_name,
                             contig_weights[comp].append(weight_list)
 
                     k1mer_file.writelines(k1mer_file_data)
-            logger.info("k1mers written to file ")
+            logger.info("k1mers written to file")
 
-        logger.info("kmers written to file " + "\n")
+        logger.info("kmers written to file")
 
         if inMem:
             new_comps = new_components
