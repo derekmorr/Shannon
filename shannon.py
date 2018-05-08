@@ -5,7 +5,6 @@ import os
 import os.path
 import sys
 import tester
-import time
 
 import run_MB_SF_fn
 import multiprocessing as mp
