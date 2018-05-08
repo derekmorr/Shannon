@@ -30,14 +30,6 @@ c2 = Counter("Correction", 10**6)
 reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}[B] for B in x][::-1])
 
 
-def log_msg(file_handle, msg):
-    """prints a message to the console and writes it to file_handle."""
-    print(msg)
-    file_handle.write(msg + "\n")
-    file_handle.flush()
-    return None
-
-
 def rc(lines, out_q):
         nl = copy.deepcopy(lines)
         for (i, line) in enumerate(lines):
