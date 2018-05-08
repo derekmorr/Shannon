@@ -31,23 +31,23 @@ reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A',
 
 
 def rc(lines, out_q):
-        nl = copy.deepcopy(lines)
-        for (i, line) in enumerate(lines):
-                nl[i] = (reverse_complement(line.strip())+'\n')
-        out_q.put(nl)
+    nl = copy.deepcopy(lines)
+    for (i, line) in enumerate(lines):
+            nl[i] = (reverse_complement(line.strip())+'\n')
+    out_q.put(nl)
 
 
 def rc_mate_ds(reads_1, reads_2, double_stranded, out_q):
-        nr1 = copy.deepcopy(reads_1)
+    nr1 = copy.deepcopy(reads_1)
+    if double_stranded:
+        nr2 = copy.deepcopy(reads_2)
+    for (i, read_1) in enumerate(reads_1):
+        nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())+'\n']
         if double_stranded:
-            nr2 = copy.deepcopy(reads_2)
-        for (i, read_1) in enumerate(reads_1):
-                nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())+'\n']
-                if double_stranded:
-                    nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())+'\n']
-        if double_stranded:
-            nr1.extend(nr2)
-        out_q.put(nr1)
+            nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())+'\n']
+    if double_stranded:
+        nr1.extend(nr2)
+    out_q.put(nr1)
 
 
 def par_read_ns(reads_files, double_stranded, nJobs, ns):
