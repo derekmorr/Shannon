@@ -11,7 +11,7 @@ BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
 
 
-class Counter():
+class Counter(object):
     def __init__(self, name, report_length):
         self.name = name
         self.count = 0
