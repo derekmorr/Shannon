@@ -3,10 +3,8 @@ import logging
 import math
 import os
 import os.path
-import subprocess
 import sys
 import tester
-import test_suite
 import time
 
 import run_MB_SF_fn
@@ -19,6 +17,7 @@ from kmers_for_component import kmers_for_component
 from process_concatenated_fasta import process_concatenated_fasta
 from extension_correction import extension_correction
 from operator import itemgetter
+from install_tests import test_install, test_install_gnu_parallel, test_install_kallisto
 
 # Set Paths
 shannon_dir = os.path.dirname(os.path.abspath(sys.argv[0])) + '/'
@@ -81,61 +80,6 @@ def run_cmd(s1):
     os.system(s1)
 
 
-def test_install():
-    exit_now = False
-    print('Checking the various dependencies')
-    print('--------------------------------------------')
-    if test_suite.which(jellyfish_path):
-        print('Using jellyfish in ' + test_suite.which(jellyfish_path))
-        a = subprocess.check_output([jellyfish_path, '--version'])
-        if len(a) < 11:
-            print('Unable to automatically determine jellyfish version. Ensure that it is version 2.0.0 or greater')
-        else:
-            if a[10] != '2':
-                print('Jellyfish version does not seem to be greater than 2.0.0. Please ensure that it is version 2.0.0 or greater, continuing run...')
-
-    else:
-        print('ERROR: Jellyfish not found. Set variable jellyfish_path correctly')
-        exit_now = True
-    if test_suite.which(gpmetis_path):
-        print('Using GPMETIS in ' + test_suite.which(gpmetis_path))
-    else:
-        print('ERROR: GPMETIS not found in path. Set variable gpmetis_path correctly')
-        exit_now = True
-    try:
-        import cvxopt
-    except ImportError, e:
-        print('ERROR: CVXOPT not installed into Python. Please see online manual for instructions.')
-        exit_now = True
-    return exit_now
-
-
-def test_install_quorum():
-    if test_suite.which(quorum_path):
-        print('Using Quorum in ') + test_suite.which(quorum_path)
-    else:
-        print('ERROR: Quorum not found in path. Set variable quorum_path correctly')
-        sys.exit()
-
-
-def test_install_gnu_parallel():
-    if test_suite.which(gnu_parallel_path):
-        print('Using GNU Parallel in ') + test_suite.which(gnu_parallel_path)
-    else:
-        print('ERROR: GNU Parallel not found in path. If you need to run multi-threaded, GNU Parallel is needed. Set variable gnu_parallel_path correctly')
-
-
-def test_install_kallisto():
-    if test_suite.which(kallisto_path):
-        print('Using Kallisto in ') + test_suite.which(kallisto_path)
-        return True
-    else:
-        print('ERROR: Kallisto not found in path ' +
-              test_suite.which(kallisto_path))
-        print('Kallisto filtering DISABLED.')
-        return False
-
-
 def print_message():
     print('--------------------------------------------')
     print('Shannon: RNA Seq de novo Assembly')
@@ -164,7 +108,7 @@ def setup_logging(log_file_name):
 
 
 print_message()
-exit_now = test_install()
+exit_now = test_install(jellyfish_path, gpmetis_path)
 # Read input from terminal
 n_inp = sys.argv[1:]
 if '--help' in n_inp:
