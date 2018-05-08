@@ -1,3 +1,4 @@
+import logging
 import time
 import math
 import os
@@ -138,14 +139,17 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
     directory_name: where files should be stored
     contig_file_extension: the contig files are in this extension
     """
-    if os.path.exists(directory_name+"/before_sp_log.txt"):
-        f_log = open(directory_name+"/before_sp_log.txt", 'a')
-    else:
-        f_log = open(directory_name+"/before_sp_log.txt", 'w')
 
-    def write_log(s):
-        f_log.write(s + "\n")
-        print(s)
+    # setup logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    log_file_name = directory_name + "/before_sp_log.txt"
+    handler = logging.FileHandler(log_file_name)
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     # Counts number of components above size threshold
     Num_Components = 0
@@ -206,13 +210,13 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                         contig_file = "/component" + str(i+1) + contig_file_extension
                         new_contig_file = contig_file  # Currently unused option
                         randomize = False
-                        write_log(str(time.asctime()) + ": " + "Creating graph for repartition ")
+                        logger.info("Creating graph for repartition ")
                         weight_updated_graph(directory_name, partition_file, og_graph_file, new_graph_file, contig_file, new_contig_file, penalty, randomize)
-                        write_log(str(time.asctime()) + ": " + "Created graph for repartition ")
+                        logger.info("Created graph for repartition ")
                         # Rerun GPMETIS file for repartition
                         run_cmd(gpmetis_path + " -ufactor=" + str(ufactor) + " " + directory_name + "/component" + str(i + 1) + "r2.txt " + str(Partitions))
 
-        write_log(str(time.asctime()) + ": " + "gpmetis for partitioning is complete \n " + temp_string)
+        logger.info("gpmetis for partitioning is complete \n " + temp_string)
 
         new_components = {}
         k1mers2component = {}
@@ -279,7 +283,7 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                             k1mers2component[k1mer][0].add(comp)
                     j += 1
 
-        write_log(str(time.asctime()) + ": " + "k1mers2component dictionary created ")
+        logger.info("k1mers2component dictionary created ")
 
         # Assigns reads to components in the non paired end case
         NR = 10000000
@@ -397,11 +401,11 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                     read1_part_seq[comp] = rps1
                     read2_part_seq[comp] = rps2
 
-        write_log(str(time.asctime()) + ": " + "reads partititoned ")
+        logger.info("reads partititoned ")
 
         contig_weights = {}
         if not only_reads:  # If only_reads, no need to write k1mers
-            write_log(str(time.asctime()) + ": Writing k1mers to file")
+            logger.info("Writing k1mers to file")
             # Writes out k1mers with weights for each partition
             for comp in new_components:
                 with open(directory_name + "/component" + comp + "k1mers_allowed.dict", 'w') as k1mer_file:
@@ -419,9 +423,9 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
                             contig_weights[comp].append(weight_list)
 
                     k1mer_file.writelines(k1mer_file_data)
-            write_log(str(time.asctime()) + ": k1mers written to file ")
+            logger.info("k1mers written to file ")
 
-        write_log(str(time.asctime()) + ": kmers written to file " + "\n")
+        logger.info("kmers written to file " + "\n")
 
         if inMem:
             new_comps = new_components
