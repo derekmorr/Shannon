@@ -302,12 +302,6 @@ def trim_polyA(contig):
             break
         endLen += 1
 
-    if startLen < minLen:
-        startLen = 0
-
-    if endLen < minLen:
-        endLen = 0
-
     return contig[startPt:totLen-endPt]
 
 
