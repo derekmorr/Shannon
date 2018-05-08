@@ -288,11 +288,11 @@ if n_inp:
 if exit_now:
     print('Try running python shannon.py --help for a short manual')
     sys.exit()
-else:
-    print('--------------------------------------------')
-    print("{:s}: Starting Shannon run..".format(time.asctime()))
 
 log = setup_logging(comp_directory_name + "/before_sp_log.txt")
+
+log.info('--------------------------------------------')
+log.info("Starting Shannon run..")
 
 if len(reads_files) == 1:
     paired_end = False
