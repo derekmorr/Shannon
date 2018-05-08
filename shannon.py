@@ -1,12 +1,13 @@
-import time
-import sys
+import copy
+import logging
 import math
 import os
 import os.path
+import subprocess
+import sys
 import tester
 import test_suite
-import subprocess
-import copy
+import time
 
 import run_MB_SF_fn
 import multiprocessing as mp
@@ -140,6 +141,26 @@ def print_message():
     print('Shannon: RNA Seq de novo Assembly')
     print('Version: ' + version)
     print('--------------------------------------------')
+
+
+def setup_logging(log_file_name):
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    file_handler = logging.FileHandler(log_file_name)
+    file_handler.setLevel(logging.INFO)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    stdout_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stdout_handler)
+
+    return logger
 
 
 print_message()
@@ -327,6 +348,8 @@ else:
     print('--------------------------------------------')
     print("{:s}: Starting Shannon run..".format(time.asctime()))
 
+log = setup_logging(comp_directory_name + "/before_sp_log.txt")
+
 if len(reads_files) == 1:
     paired_end = False
 elif len(reads_files) == 2:
@@ -374,8 +397,7 @@ original_reads_files = copy.deepcopy(reads_files)
 
 # Run Quorum now
 if run_quorum:
-    print "{:s}: Running Quorum for read error correction with quality scores..".format(
-        time.asctime())
+    log.info("Running Quorum for read error correction with quality scores.")
     run_cmd(python_path + ' ' + shannon_dir + 'run_quorum.py ' + quorum_path +
             ' ' + comp_directory_name + ' ' + '\t'.join(reads_files) + " -t " + str(nJobs))
     if paired_end:
@@ -424,15 +446,14 @@ else:
         run_cmd('rm ' + rc_read_file_1 + ' ' + rc_read_file_2)
         reads_files = [new_reads_file_1, new_reads_file_2]
 
-print "Processed No of reads:" + str(N) + ", Avg. Read length: " + str(L)
+log.info("Processed No of reads:" + str(N) + ", Avg. Read length: " + str(L))
 double_stranded = False
 # ----------------------
 
 reads_string = ' '.join(reads_files)
 # Runs Jellyfish
 if run_jellyfish:
-    print "{:s}: Starting Jellyfish to extract Kmers from Reads..".format(
-        time.asctime())
+    log.info("Starting Jellyfish to extract Kmers from Reads.")
     K_value = K
     run_jfs = ' '
     if double_stranded:
@@ -448,7 +469,7 @@ if run_jellyfish:
     if (not run_extension_corr) and (not double_stranded):
         run_cmd('mv ' + sample_name_input + 'algo_input/k1mer.dict_org ' +
                 sample_name_input + 'algo_input/k1mer.dict')
-    print "{:s}: Jellyfish finished..".format(time.asctime())
+    log.info("Jellyfish finished.")
 
 # Runs error correction for k1mers (Deletes error k1mers) using contig approach
 # and determines seperate groups of contigs that share no kmers (components)
@@ -480,20 +501,11 @@ for part in new_components:
     else:
         num_non_remaining += 1
 
-# This code updates the log
-if os.path.exists(comp_directory_name + "/before_sp_log.txt"):
-    f_log = open(comp_directory_name + "/before_sp_log.txt", 'a')
-else:
-    f_log = open(comp_directory_name + "/before_sp_log.txt", 'w')
-f_log.write(str(time.asctime()) + ": " +
-            "Number of simple Partitions: " + str(num_remaining) + "\n")
-print(str(time.asctime()) + ": " +
-      "Number of simple Partitions: " + str(num_remaining))
-f_log.write(str(time.asctime()) + ": " +
-            "Number of complex Partitions: " + str(num_non_remaining) + "\n")
-print(str(time.asctime()) + ": " + "Number of complex Partitions: " +
-      str(num_non_remaining) + "\n")
-f_log.close()
+
+log.info("Number of simple Partitions: " + str(num_remaining))
+log.info("Number of simple Partitions: " + str(num_remaining))
+log.info("Number of complex Partitions: " + str(num_non_remaining))
+log.info("Number of complex Partitions: " + str(num_non_remaining))
 
 # parameters for main_server call
 main_server_parameter_string = ""
@@ -575,8 +587,8 @@ elif inMem:
         split_names.append(sorted_comps[(i)*nJobs:(i+1)*nJobs])
 
     for (i, curr_processes) in enumerate(split_MBSF_processes):
-        print("Currently running:  \n")
-        print(split_names[i])
+        log.info("Currently running:")
+        log.info(split_names[i])
         for process in curr_processes:
             process.start()
         for process in curr_processes:
@@ -585,17 +597,9 @@ elif inMem:
     # May need to modify so that number of jobs
 
 
-if os.path.exists(comp_directory_name + "/before_sp_log.txt"):
-    f_log = open(comp_directory_name + "/before_sp_log.txt", 'a')
-else:
-    f_log = open(comp_directory_name + "/before_sp_log.txt", 'w')
-
-# updates log
-
 # locates all reconstructed files
 
-reconstructed_files = comp_directory_name + \
-    "/reconstructed_single_contigs.fasta "
+reconstructed_files = comp_directory_name + "/reconstructed_single_contigs.fasta "
 for comp in new_components:
     dir_base = comp_directory_name + "/" + sample_name + str(comp)
     dir_out = dir_base + "algo_output"
@@ -607,22 +611,21 @@ dir_out = dir_base + "algo_output"
 run_cmd("mkdir " + dir_out)
 out_file = dir_out + "/" + "all_reconstructed.fasta"
 run_cmd("cat " + reconstructed_files + " > " + out_file)
-process_concatenated_fasta(
-    out_file, dir_out + "/reconstructed_org.fasta", original_ds)
-f_log.write(str(time.asctime()) + ': All partitions completed.\n')
+process_concatenated_fasta(out_file, dir_out + "/reconstructed_org.fasta", original_ds)
+log.info("All partitions completed.")
 
 if find_reps:
-    f_log.write(str(time.asctime()) + ': Finding representative outputs\n')
+    log.info("Finding representative outputs")
     run_cmd('cat ' + dir_out +
             "/reconstructed_org.fasta | perl -e 'while (<>) {$h=$_; $s=<>; $seqs{$h}=$s;} foreach $header (sort {length($seqs{$a}) <=> length($seqs{$b})} keys %seqs) {print $header.$seqs{$header}}' > " + dir_out + "/reconstructed_sorted.fasta ")
     run_cmd(python_path + ' ' + shannon_dir + 'faster_reps.py -d ' + dir_out +
             "/reconstructed_sorted.fasta " + dir_out + "/reconstructed.fasta ")
-    f_log.write(str(time.asctime()) + ': Representative outputs found.\n')
+    log.info("Representative outputs found.")
 else:
     run_cmd('mv ' + dir_out + "/reconstructed_org.fasta " +
             dir_out + "/reconstructed.fasta ")
 
-#------Filter using Kallisto-------#
+# ------Filter using Kallisto------- #
 if run_kallisto:
     run_cmd('mv ' + dir_out+"/reconstructed.fasta " +
             dir_out+"/rec_before_kallisto.fasta")
@@ -643,11 +646,8 @@ if compare_ans:
 num_transcripts = 0
 with open(dir_out + "/" + "reconstructed.fasta", 'r') as reconstructed_transcripts:
     num_transcripts = int(len(reconstructed_transcripts.readlines())/2.0)
-f_log.write(str(time.asctime()) + ": " + "All partitions completed: " +
-            str(num_transcripts) + " transcripts reconstructed" + "\n")
-print(str(time.asctime()) + ": " + "All partitions completed: " +
-      str(num_transcripts) + " transcripts reconstructed" + "\n")
-f_log.close()
+log.info("All partitions completed: " + str(num_transcripts) + " transcripts reconstructed")
+log.info("All partitions completed: " + str(num_transcripts) + " transcripts reconstructed")
 
 
 # Creates final output
@@ -664,6 +664,6 @@ if compare_ans:
             "allalgo_output/reconstr_log.txt " + comp_directory_name + '/compare_log.txt')
 
 
-print("-------------------------------------------------")
-print(str(time.asctime()) + ": Shannon Run Completed")
-print("-------------------------------------------------")
+log.info("-------------------------------------------------")
+log.info("Shannon Run Completed")
+log.info("-------------------------------------------------")
