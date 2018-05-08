@@ -7,7 +7,7 @@ group: navigation
 {% include JB/setup %}
 
 ~~~
-Shannon Version 0.0.0
+Shannon Version 0.0.2
 
 ~~~
 ###Usage
