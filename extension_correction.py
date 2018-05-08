@@ -299,7 +299,7 @@ def duplicate_check2(contig, rmer_to_contig, r=15, f=0.5):
     for i in range(0, len(contig)-r+1):
         if contig_slice in rmer_to_contig:
             if max_contig_index in rmer_to_contig[contig_slice]:
-                a += r
+                a += 1
 
     return a > f * float(len(contig))
 
