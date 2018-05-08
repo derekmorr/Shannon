@@ -124,7 +124,7 @@ def par_PE_rc(reads_1, reads_2, double_stranded, nJobs):
     return reads
 
 
-def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, directory_name,
+def kmers_for_component(k1mer_dictionary, reads, reads_files, directory_name,
                         contig_file_extension, get_partition_k1mers, double_stranded=True,
                         paired_end=False, repartition=False, partition_size=500, overload=1.5,
                         K=24, gpmetis_path='gpmetis', penalty=5, only_reads=False, inMem=False, nJobs=1):
@@ -134,7 +134,6 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
     It then creates a kmers2component dictionary.  It then outputs a kmers file for each component.
     Inputs:
     k1mer_dictionary
-    kmer_directory: used instead of k1mer_dictionary, currently unused
     reads_files: where reads are
     directory_name: where files should be stored
     contig_file_extension: the contig files are in this extension
