@@ -1,5 +1,5 @@
 import logging
-import time
+import sys
 import math
 import os
 import os.path
@@ -145,11 +145,18 @@ def kmers_for_component(k1mer_dictionary, kmer_directory, reads, reads_files, di
     logger = logging.getLogger(__name__)
 
     log_file_name = directory_name + "/before_sp_log.txt"
-    handler = logging.FileHandler(log_file_name)
-    handler.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(log_file_name)
+    file_handler.setLevel(logging.INFO)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    file_handler.setFormatter(formatter)
+    stdout_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stdout_handler)
 
     # Counts number of components above size threshold
     Num_Components = 0
