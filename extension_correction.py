@@ -358,8 +358,8 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     logger.addHandler(file_handler)
     logger.addHandler(stdout_handler)
 
-    logger.info('nJobs:' + str(nJobs))
-    logger.info('reads_files:' + ' '.join(reads_files))
+    logger.info('nJobs: %d', nJobs)
+    logger.info('reads_files: %s',  ' '.join(reads_files))
     logger.info("Starting Kmer error correction.")
 
     if nJobs == 1:
@@ -367,7 +367,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     elif nJobs > 1:
         kmers, K = load_kmers_parallel(infile, double_stranded, polyA_del, nJobs)
 
-    logger.info("{:d} K-mers loaded.".format(len(kmers)))
+    logger.info("%d K-mers loaded.", len(kmers))
 
     logger.info("Reads loading in background process.")
 
@@ -442,7 +442,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 else:
                     rmer_to_contig[contig[i:i+r]] = [contig_index]
     f1.close()
-    logger.info("{:d} K-mers remaining after error correction.".format(len(allowed)))
+    logger.info("%d K-mers remaining after error correction.", len(allowed))
 
     # Writes out kmers from all allowed contigs
     allowed_kmer_dict = {}
@@ -452,7 +452,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 f.write("{:s}\t{:d}\n".format(kmer, int(kmers[kmer])))
             allowed_kmer_dict[kmer] = int(kmers[kmer])
     del kmers
-    logger.info("{:d} K-mers written to file.".format(len(allowed)))
+    logger.info("%d K-mers written to file.", len(allowed))
 
     # Depth First Search to find components of contig graph.
 
@@ -551,7 +551,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     logger.info("Read-loader in background process joining back.")
 
     reads = []
-    logger.info("{:d} Reads loaded in background process.".format(len(reads)))
+    logger.info("%d Reads loaded in background process.", len(reads))
     return allowed_kmer_dict, reads
 
 
