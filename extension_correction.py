@@ -1,9 +1,10 @@
-import time
-import sys
-import math
-import numpy
-import multiprocessing
 import copy
+import logging
+import math
+import multiprocessing
+import numpy
+import sys
+import time
 from operator import itemgetter
 from collections import defaultdict
 
@@ -320,19 +321,37 @@ def trim_polyA(contig):
 
 def run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name, comp_size_threshold,
                    polyA_del, inMem, nJobs, reads_files):
-    print('nJobs:' + str(nJobs))
-    print('reads_files:' + ' '.join(reads_files))
-    f_log = open(comp_directory_name+"/before_sp_log.txt", 'w')
-    log_msg(f_log, "{:s}: Starting Kmer error correction..".format(time.asctime()))
+
+    # setup logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    log_file_name = comp_directory_name + "/before_sp_log.txt"
+    file_handler = logging.FileHandler(log_file_name)
+    file_handler.setLevel(logging.INFO)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    stdout_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stdout_handler)
+
+    logger.info('nJobs:' + str(nJobs))
+    logger.info('reads_files:' + ' '.join(reads_files))
+    logger.info("Starting Kmer error correction.")
 
     if nJobs == 1:
         kmers, K = load_kmers(infile, double_stranded, polyA_del)
     elif nJobs > 1:
         kmers, K = load_kmers_parallel(infile, double_stranded, polyA_del, nJobs)
 
-    log_msg(f_log, "{:s}: {:d} K-mers loaded.".format(time.asctime(), len(kmers)))
+    logger.info("{:d} K-mers loaded.".format(len(kmers)))
 
-    f_log.write("{:s}: Reads loading in background process.".format(time.asctime()) + "\n")
+    logger.info("Reads loading in background process.")
 
     heaviest = sorted(kmers.items(), key=itemgetter(1))
     traversed = set()
@@ -398,7 +417,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 else:
                     rmer_to_contig[contig[i:i+r]] = [contig_index]
     f1.close()
-    log_msg(f_log, "{:s}: {:d} K-mers remaining after error correction.".format(time.asctime(), len(allowed)))
+    logger.info("{:d} K-mers remaining after error correction.".format(len(allowed)))
 
     # Writes out kmers from all allowed contigs
     allowed_kmer_dict = {}
@@ -408,13 +427,11 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 f.write("{:s}\t{:d}\n".format(kmer, int(kmers[kmer])))
             allowed_kmer_dict[kmer] = int(kmers[kmer])
     del kmers
-    f_log.write("{:s}: {:d} K-mers written to file.".format(time.asctime(), len(allowed)) + " \n")
-    f_log.flush()
+    logger.info("{:d} K-mers written to file.".format(len(allowed)))
 
     # Depth First Search to find components of contig graph.
 
-    f_log.write(str(time.asctime()) + ": Before dfs " + "\n")
-    f_log.flush()
+    logger.debug("Before dfs")
 
     contig2component = {}
     component2contig = {}
@@ -434,8 +451,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                         stack1.append(connected)
                         seen_before[connected] = True
 
-    f_log.write(str(time.asctime()) + ": After dfs " + "\n")
-    f_log.flush()
+    logger.debug("After dfs")
     # Finds all connections for Metis graph file.
 
     connections_drawn = {}
@@ -450,8 +466,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             if key1 not in connections_drawn[component]:
                 # write to file here
                 connections_drawn[component][key1] = True
-    f_log.write(str(time.asctime()) + ": After Edges Loaded " + "\n")
-    f_log.flush()
+    logger.debug("After Edges Loaded")
 
     # Build Metis Graph file.
     new_comp_num = 1
@@ -502,14 +517,11 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                 non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
                 remaining_file_curr_size = 0
 
-    f_log.write(str(time.asctime()) + ": Metis Input File Created " + "\n")
-    f_log.flush()
+    logger.info("Metis Input File Created")
+    logger.info("Read-loader in background process joining back.")
 
-    f_log.write("{:s}: Read-loader in background process joining back.".format(time.asctime()) + "\n")
-    f_log.flush()
     reads = []
-    f_log.write("{:s}: {:d} Reads loaded in background process.".format(time.asctime(), len(reads)) + "\n")
-    f_log.close()
+    logger.info("{:d} Reads loaded in background process.".format(len(reads)))
     return allowed_kmer_dict, reads
 
 
