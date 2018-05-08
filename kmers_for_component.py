@@ -24,15 +24,15 @@ def rc(lines, out_q):
     out_q.put(nl)
 
 
-def rc_mate_ds(reads_1, reads_2, ds, out_q):
+def rc_mate_ds(reads_1, reads_2, double_stranded, out_q):
     nr1 = copy.deepcopy(reads_1)
-    if ds:
+    if double_stranded:
         nr2 = copy.deepcopy(reads_2)
     for (i, read_1) in enumerate(reads_1):
         nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())]
-        if ds:
+        if double_stranded:
             nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())]
-    if ds:
+    if double_stranded:
         nr1.extend(nr2)
     out_q.put(nr1)
 
