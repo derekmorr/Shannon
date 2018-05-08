@@ -27,7 +27,8 @@ class Counter(object):
 c1 = Counter("Loading", 10**6)
 c2 = Counter("Correction", 10**6)
 
-reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}[B] for B in x][::-1])
+reverse_complement = \
+    lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}[B] for B in x][::-1])
 
 
 def rc(lines, out_q):
@@ -160,7 +161,8 @@ def par_load(lines, double_stranded, polyA_del, out_q):
     """Loads the list of K-mers and copycounts and determines K.
     Returns (kmers, K) in out_q.
     """
-    reverse_complement = lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}[B] for B in x][::-1])
+    reverse_complement = \
+        lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}[B] for B in x][::-1])
     d = defaultdict(lambda: 0)
     for (i, line) in enumerate(lines):
         kmer, weight = line.strip().split()
@@ -250,7 +252,8 @@ def extend_left(start, traversed, kmers, K):
 
 
 def duplicate_check(contig, rmer_to_contig, r=15, f=0.5):
-    # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig
+    # To add: if rmer in the contig multiple times,
+    # only increment the dup-contig once for each time its in dup-contig
     dup_count = defaultdict(lambda: 1)
     max_till_now = 0
     max_contig_index = -1
@@ -268,12 +271,41 @@ def duplicate_check(contig, rmer_to_contig, r=15, f=0.5):
                 a[i:i+r] = 1
 
     return sum(a) > f * float(len(contig))
-           
+
+
+def duplicate_check2(contig, rmer_to_contig, r=15, f=0.5):
+    # To add: if rmer in the contig multiple times,
+    # only increment the dup-contig once for each time its in dup-contig
+    dup_count = defaultdict(lambda: 1)
+    max_till_now = 0
+    max_contig_index = -1
+    for i in range(0, len(contig)-r+1):
+        # parallel map over this:
+        contig_slice = contig[i:i+r]
+        if contig_slice in rmer_to_contig:
+            for dup in rmer_to_contig[contig_slice]:
+                # return a struct with:
+                # - dup_count[dup]'s new increment (0 or 1)
+                # - max_till_now
+                # - max_contig_index
+                # then in the driver, after the processes have joined,
+                # merge dup_count[dup] values
+                # # how to process max_till_now and max_config_index ?
+                dup_count[dup] += 1
+                if dup_count[dup] >= max_till_now:
+                    max_till_now = dup_count[dup]
+                    max_contig_index = dup
+    a = 0
+    for i in range(0, len(contig)-r+1):
+        if contig_slice in rmer_to_contig:
+            if max_contig_index in rmer_to_contig[contig_slice]:
+                a += r
+
+    return a > f * float(len(contig))
 
 
 def trim_polyA(contig):
     """Trim polyA tails if at least last minLen bases are polyA or first minLen bases are polyT"""
-    minLen = 12
     startLen = 0
     endLen = 0
     startPt = 0
@@ -305,8 +337,8 @@ def trim_polyA(contig):
     return contig[startPt:totLen-endPt]
 
 
-def run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name, comp_size_threshold,
-                   polyA_del, inMem, nJobs, reads_files):
+def run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name,
+                   comp_size_threshold, polyA_del, inMem, nJobs, reads_files):
 
     # setup logging
     logging.basicConfig(level=logging.INFO)
@@ -356,8 +388,10 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             continue
         traversed.add(start_kmer)
 
-        [right_extension, right_kmer_wt, right_kmer_no] = extend_right(start_kmer, traversed, kmers, K)
-        [left_extension, left_kmer_wt, left_kmer_no] = extend_left(start_kmer, traversed, kmers, K)
+        [right_extension, right_kmer_wt, right_kmer_no] = \
+            extend_right(start_kmer, traversed, kmers, K)
+        [left_extension, left_kmer_wt, left_kmer_no] = \
+            extend_left(start_kmer, traversed, kmers, K)
         tot_wt = right_kmer_wt + left_kmer_wt + kmers[start_kmer]
         tot_kmer = right_kmer_no + left_kmer_no + 1
         avg_wt = tot_wt / max(1, tot_kmer)
@@ -368,7 +402,10 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
         duplicate_suspect = duplicate_check(contig, rmer_to_contig, r)
 
         # The line below is the hyperbola error correction.
-        if (not correct_errors) or (len(contig) >= min_length and len(contig)*math.pow(avg_wt, 1/4.0) >= 2*min_length*math.pow(min_weight, 1/4.0) and not duplicate_suspect):
+        if (not correct_errors) or \
+                (len(contig) >= min_length and
+                 len(contig)*math.pow(avg_wt, 1/4.0) >= 2*min_length*math.pow(min_weight, 1/4.0)
+                 and not duplicate_suspect):
             f1.write("{:s}\n".format(contig))
             contig_index += 1
             contigs.append(contig)
@@ -384,11 +421,13 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             for i in range(len(contig) - C + 1):
                 if contig[i:i+C] in cmer_to_contig:
                     for contig2_index in cmer_to_contig[contig[i:i+C]]:
-                        if contig2_index in contig_connections[contig_index] and contig2_index != contig_index:
+                        if contig2_index in contig_connections[contig_index] and \
+                                contig2_index != contig_index:
                             contig_connections[contig_index][contig2_index] += 1
                         elif contig2_index != contig_index:
                             contig_connections[contig_index][contig2_index] = 1
-                        if contig_index in contig_connections[contig2_index] and contig2_index != contig_index:
+                        if contig_index in contig_connections[contig2_index] and \
+                                contig2_index != contig_index:
                             contig_connections[contig2_index][contig_index] += 1
                         elif contig2_index != contig_index:
                             contig_connections[contig2_index][contig_index] = 1
@@ -460,8 +499,10 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     remaining_file_curr_size = 0
     remaining_file_num = 1
     single_contig_index = 0
-    single_contigs = open(comp_directory_name+"/reconstructed_single_contigs.fasta", 'w')
-    non_comp_contigs = open(comp_directory_name+"/remaining_contigs" + str(remaining_file_num) + ".txt", 'w')
+    single_contigs = \
+        open(comp_directory_name+"/reconstructed_single_contigs.fasta", 'w')
+    non_comp_contigs = \
+        open(comp_directory_name+"/remaining_contigs" + str(remaining_file_num) + ".txt", 'w')
     for component in component2contig:
         if len(component2contig[component]) == 1:
             contig_ind = component2contig[component][0]
@@ -483,10 +524,12 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
                     i += 1
                 for contig in component2contig[component]:
                     for contig2 in contig_connections[contig]:
-                        f.write(str(code[contig2]) + "\t" + str(contig_connections[contig][contig2]) + "\t")
+                        f.write(str(code[contig2]) + "\t" +
+                                str(contig_connections[contig][contig2]) + "\t")
                     f.write("\n")
 
-            with open(comp_directory_name+"/component" + str(new_comp_num) + "contigs" + ".txt", 'w') as f:
+            with open(comp_directory_name+"/component" +
+                      str(new_comp_num) + "contigs" + ".txt", 'w') as f:
                 for contig in component2contig[component]:
                     f.write(contigs[contig] + "\n")
 
@@ -500,7 +543,8 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
             if remaining_file_curr_size > comp_size_threshold:
                 remaining_file_num += 1
                 non_comp_contigs.close()
-                non_comp_contigs = open(comp_directory_name+"/remaining_contigs"+str(remaining_file_num)+".txt", 'w')
+                non_comp_contigs = open(comp_directory_name + "/remaining_contigs" +
+                                        str(remaining_file_num) + ".txt", 'w')
                 remaining_file_curr_size = 0
 
     logger.info("Metis Input File Created")
@@ -531,8 +575,9 @@ def extension_correction(arguments, inMem=False):
     else:
         reads_files = []
 
-    allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length, double_stranded,
-                                               comp_directory_name, comp_size_threshold, True, inMem, nJobs, reads_files)
+    allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length,
+                                              double_stranded, comp_directory_name,
+                                              comp_size_threshold, True, inMem, nJobs, reads_files)
     return allowed_kmer_dict, reads
 
 
