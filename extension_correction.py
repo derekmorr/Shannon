@@ -295,13 +295,13 @@ def duplicate_check2(contig, rmer_to_contig, r=15, f=0.5):
                 if dup_count[dup] >= max_till_now:
                     max_till_now = dup_count[dup]
                     max_contig_index = dup
-    a = 0
+    a = numpy.zeros(len(contig))
     for i in range(0, len(contig)-r+1):
         if contig_slice in rmer_to_contig:
             if max_contig_index in rmer_to_contig[contig_slice]:
-                a += 1
+                a[i:i+r] = 1
 
-    return a > f * float(len(contig))
+    return sum(a) > f * float(len(contig))
 
 
 def trim_polyA(contig):
