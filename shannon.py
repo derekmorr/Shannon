@@ -426,7 +426,7 @@ if run_jellyfish:
     log.info("Jellyfish finished.")
 
 # Runs error correction for k1mers (Deletes error k1mers) using contig approach
-# and determines seperate groups of contigs that share no kmers (components)
+# and determines separate groups of contigs that share no kmers (components)
 if run_extension_corr:
     if double_stranded:
         str_ec = ' -d '
