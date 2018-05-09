@@ -52,12 +52,10 @@ def argmax(lst, key):
     return best
 
 
-def duplicate_check_ends(contigs, contig_name, rc, f = 0.99):
+def duplicate_check_ends(contigs, contig_name, rc):
         contig = contigs[contig_name]
         if rc:
                 contig = reverse_complement(contig)
-        qName = contig_name
-        qLen = len(contig)
         first_rmer = contig[:r]
         last_rmer = contig[-r:]
         if first_rmer in rmer_to_contig and last_rmer in rmer_to_contig:
