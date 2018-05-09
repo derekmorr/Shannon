@@ -106,6 +106,15 @@ def setup_logging(log_file_name):
     return logger
 
 
+def mkdir(dirname):
+    """makes a directory if it doesn't exist. The directory path is made recursively."""
+    if not os.path.exists(dirname):
+        try:
+            os.makedirs(dirname)
+        except OSError as e:
+            log.error("Error creating directory %s: %s", dirname, e.strerror)
+
+
 print_message()
 exit_now = test_install(jellyfish_path, gpmetis_path)
 # Read input from terminal
@@ -288,6 +297,8 @@ if exit_now:
     print('Try running python shannon.py --help for a short manual')
     sys.exit()
 
+mkdir(comp_directory_name)
+
 log = setup_logging(comp_directory_name + "/before_sp_log.txt")
 
 log.info('--------------------------------------------')
@@ -300,10 +311,10 @@ elif len(reads_files) == 2:
 
 
 if run_parallel:
-    test_install_gnu_parallel()
+    test_install_gnu_parallel(gnu_parallel_path)
 
 if run_kallisto:
-    test_install_kallisto()
+    test_install_kallisto(kallisto_path)
 
 paired_end_flag = ""
 if paired_end:
@@ -329,8 +340,8 @@ if use_partitioning == False:
     partition_size = 100000000000000000000000000000000000000000000000000000000000000000
     comp_size_threshold = partition_size
 
-run_cmd('mkdir ' + comp_directory_name)
-run_cmd('mkdir ' + sample_name_input + "algo_input")
+
+mkdir(sample_name_input + "algo_input")
 
 
 # ----Backup parameters--------
@@ -462,8 +473,8 @@ for comp in new_components:
     if inMem:
         break
     dir_base = comp_directory_name + "/" + sample_name + str(comp)
-    run_cmd("mkdir " + dir_base + "algo_input")
-    run_cmd("mkdir " + dir_base + "algo_output")
+    mkdir(dir_base + "algo_input")
+    mkdir(dir_base + "algo_output")
     if paired_end:
         run_cmd("mv " + base_directory_name + "/reads" + str(comp) +
                 "_1.fasta " + dir_base + "algo_input/reads_1.fasta")
@@ -554,7 +565,7 @@ for comp in new_components:
 # Creates new directory with concatenation of all reconstructed files
 dir_base = comp_directory_name + "/" + sample_name + "all"
 dir_out = dir_base + "algo_output"
-run_cmd("mkdir " + dir_out)
+mkdir(dir_out)
 out_file = dir_out + "/" + "all_reconstructed.fasta"
 run_cmd("cat " + reconstructed_files + " > " + out_file)
 process_concatenated_fasta(out_file, dir_out + "/reconstructed_org.fasta", original_ds)
@@ -597,7 +608,7 @@ log.info("All partitions completed: " + str(num_transcripts) + " transcripts rec
 
 
 # Creates final output
-run_cmd('mkdir ' + comp_directory_name + '/TEMP')
+mkdir(comp_directory_name + '/TEMP')
 run_cmd('mv ' + comp_directory_name + '/*_* ' + comp_directory_name + '/TEMP')
 run_cmd('mv ' + comp_directory_name + '/TEMP/before_sp_log.txt ' +
         comp_directory_name + '/log.txt')
