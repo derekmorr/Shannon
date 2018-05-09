@@ -32,16 +32,6 @@ class Counter(object):
             print "{:s}: {:s}, processed {:d}".format(time.asctime(), self.name, self.count)
 
 
-def find_kmers(contig, k, ds):
-    """find the kmers of a contig of size k with ds denoting double stranded)"""
-    rmer_list = []
-    for i in range(0, len(contig)-r+1):
-        rmer_list.append(contig[i:i+r])
-        if ds:
-            rmer_list.append(reverse_complement(contig[i:i+r]))
-    return rmer_list
-
-
 def argmax(lst, key):
     """Returns the element x in LST that maximizes KEY(x).
     """
