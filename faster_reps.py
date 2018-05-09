@@ -43,37 +43,37 @@ def argmax(lst, key):
 
 
 def duplicate_check_ends(contigs, contig_name, rc):
-        contig = contigs[contig_name]
-        if rc:
-                contig = reverse_complement(contig)
-        first_rmer = contig[:r]
-        last_rmer = contig[-r:]
-        if first_rmer in rmer_to_contig and last_rmer in rmer_to_contig:
-                contig_dict = {}
-                for c, p in rmer_to_contig[first_rmer]:
-                        if c == contig_name:
-                                continue
+    contig = contigs[contig_name]
+    if rc:
+        contig = reverse_complement(contig)
+    first_rmer = contig[:r]
+    last_rmer = contig[-r:]
+    if first_rmer in rmer_to_contig and last_rmer in rmer_to_contig:
+        contig_dict = {}
+        for c, p in rmer_to_contig[first_rmer]:
+            if c == contig_name:
+                continue
 
-                        if c in contig_dict:
-                                contig_dict[c][0] = p
-                        else:
-                                contig_dict[c] = [p, -1]
-                for c, p in rmer_to_contig[last_rmer]:
-                        if c == contig_name:
-                                continue
-                        if c in contig_dict:
-                                contig_dict[c][1] = p
-                        else:
-                                contig_dict[c] = [-1, p]
-                for c in contig_dict:
-                        if contig_dict[c][0] >= 0 and contig_dict[c][1] >= 0:
-                                diff = contig_dict[c][1] - contig_dict[c][0]
-                                # we are assuming that if two kmers match and if the length
-                                # is the same, then the sequences must be the same
-                                if abs(diff - (len(contig)-r)) < 3:
-                                        if len(contig) < len(contigs[c]) or ((len(contig) == len(contigs[c])) and contig_name > c):
-                                                return True
-        return False
+            if c in contig_dict:
+                contig_dict[c][0] = p
+            else:
+                contig_dict[c] = [p, -1]
+        for c, p in rmer_to_contig[last_rmer]:
+            if c == contig_name:
+                continue
+            if c in contig_dict:
+                contig_dict[c][1] = p
+            else:
+                contig_dict[c] = [-1, p]
+        for c in contig_dict:
+            if contig_dict[c][0] >= 0 and contig_dict[c][1] >= 0:
+                diff = contig_dict[c][1] - contig_dict[c][0]
+                # we are assuming that if two kmers match and if the length
+                # is the same, then the sequences must be the same
+                if abs(diff - (len(contig)-r)) < 3:
+                    if len(contig) < len(contigs[c]) or ((len(contig) == len(contigs[c])) and contig_name > c):
+                        return True
+    return False
 
         
 def find_reps(infile, outfile, ds):
