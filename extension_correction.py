@@ -163,15 +163,18 @@ def par_load(lines, double_stranded, polyA_del, out_q):
     """
     reverse_complement = \
         lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}[B] for B in x][::-1])
-    d = defaultdict(lambda: 0)
+
+    # don't use a defaultdict here because it's not pickle-able.
+    # "d" has to be pickle-able because it's put into out_q.
+    d = {}
     for (i, line) in enumerate(lines):
         kmer, weight = line.strip().split()
         if polyA_del and lowComplexity(kmer):
             continue
-        d[kmer] += float(weight)
+        d[kmer] = d.get(kmer, 0) + float(weight)
         if double_stranded:
             rc = reverse_complement(kmer)
-            d[rc] += float(weight)
+            d[rc] = d.get(rc, 0) + float(weight)
     out_q.put(d)
 
 
