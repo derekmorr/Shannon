@@ -341,7 +341,8 @@ def trim_polyA(contig):
 
 
 def run_correction(infile, outfile, min_weight, min_length, double_stranded, comp_directory_name,
-                   comp_size_threshold, polyA_del, inMem, nJobs, reads_files):
+                   comp_size_threshold, polyA_del, inMem, nJobs, reads_files,
+                   allowed_kmer_dict, reads):
 
     # setup logging
     logging.basicConfig(level=logging.INFO)
@@ -448,7 +449,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     logger.info("%d K-mers remaining after error correction.", len(allowed))
 
     # Writes out kmers from all allowed contigs
-    allowed_kmer_dict = {}
+    # allowed_kmer_dict = {}
     with open(outfile, 'w') as f:
         for kmer in allowed:
             if not inMem:
@@ -553,9 +554,11 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     logger.info("Metis Input File Created")
     logger.info("Read-loader in background process joining back.")
 
-    reads = []
+    # reads = []
     logger.info("%d Reads loaded in background process.", len(reads))
-    return allowed_kmer_dict, reads
+
+    import os
+    os._exit(0)
 
 
 def extension_correction(arguments, inMem=False):
@@ -578,9 +581,22 @@ def extension_correction(arguments, inMem=False):
     else:
         reads_files = []
 
-    allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length,
-                                              double_stranded, comp_directory_name,
-                                              comp_size_threshold, True, inMem, nJobs, reads_files)
+    # multi-processing hack
+    from multiprocessing import Process, Manager
+    manager = Manager()
+    allowed_kmer_dict = manager.dict()
+    reads = manager.list()
+
+    p = Process(target=run_correction, args=(infile, outfile, min_weight, min_length,
+                                             double_stranded, comp_directory_name,
+                                             comp_size_threshold, True, inMem, nJobs, reads_files,
+                                             allowed_kmer_dict, reads))
+    p.start()
+    p.join()
+
+    # allowed_kmer_dict, reads = run_correction(infile, outfile, min_weight, min_length,
+    #                                           double_stranded, comp_directory_name,
+    #                                           comp_size_threshold, True, inMem, nJobs, reads_files)
     return allowed_kmer_dict, reads
 
 
