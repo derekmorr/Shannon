@@ -17,6 +17,9 @@ from path_decompose_sparse import path_decompose
 import os
 from time import sleep
 
+import gc
+gc.disable()
+
 sys.setrecursionlimit(100000)
 solvers.options['show_progress'] = False
 solvers.options['msg_lev'] = 'GLP_MSG_OFF'

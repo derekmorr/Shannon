@@ -3,6 +3,9 @@ import os
 import pdb
 import math
 
+import gc
+gc.disable()
+
 def cut_file(in_name,out_name,line_start,line_end):
 	os.system('awk \'NR > ' + str(line_end) + ' { exit } NR >= ' + str(line_start) +  '\' '+ in_name + ' > ' + out_name )
 

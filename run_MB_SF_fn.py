@@ -7,6 +7,9 @@ import filter_FP
 #from filter_trans import filter_trans
 # This script is used to call all the the steps of the algorithm.
 
+import gc
+gc.disable()
+
 # List of parameters
 def run_MB_SF(arguments,inMem=False,contigs=[],weights=[],rps=[]):
 	print(arguments)

@@ -4,6 +4,9 @@ import re
 import pdb,math
 import numpy
 
+import gc
+gc.disable()
+
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
 rmer_to_contig = {}

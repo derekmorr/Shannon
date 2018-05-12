@@ -7,6 +7,8 @@ import copy
 import multiprocessing
 from weight_updated_graph import weight_updated_graph
 
+import gc
+gc.disable()
 
 def run_cmd(s1):
     print(s1)

@@ -1,6 +1,9 @@
 import time, sys, pdb
 from mbgraph import *
 
+import gc
+gc.disable()
+
 def extract_reads(filename, weighted):
     """Extract all reads from fasta file FILENAME
     and return them as a list of (weight, string) tuples.

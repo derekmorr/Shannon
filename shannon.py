@@ -18,6 +18,9 @@ from extension_correction import extension_correction
 from operator import itemgetter
 from install_tests import test_install, test_install_gnu_parallel, test_install_kallisto
 
+import gc
+gc.disable()
+
 # Set Paths
 shannon_dir = os.path.dirname(os.path.abspath(sys.argv[0])) + '/'
 gpmetis_path = 'gpmetis'
@@ -96,7 +99,7 @@ def setup_logging(log_file_name):
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(process)s - %(name)s : %(lineno)d - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)
     stdout_handler.setFormatter(formatter)
 

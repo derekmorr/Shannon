@@ -11,6 +11,8 @@ from collections import defaultdict
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
 
+import gc
+gc.disable()
 
 class Counter(object):
     def __init__(self, name, report_length):
@@ -354,7 +356,7 @@ def run_correction(infile, outfile, min_weight, min_length, double_stranded, com
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(process)s - %(name)s : %(lineno)d - %(levelname)s - %(message)s')    
     file_handler.setFormatter(formatter)
     stdout_handler.setFormatter(formatter)
 

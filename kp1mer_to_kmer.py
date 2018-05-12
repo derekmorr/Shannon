@@ -2,6 +2,9 @@ import collections
 import sys
 import time
 
+import gc
+gc.disable()
+
 def load_kp1mers(infile):
     """Loads the list of K+1-mers and copycounts and determines K.
     Returns (kmers, K).
