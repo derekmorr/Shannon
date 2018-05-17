@@ -39,7 +39,6 @@ def rc_mate_ds(reads_1, reads_2, double_stranded, out_q):
 
 
 def par_read(reads_files, double_stranded, nJobs):
-    reverse_complement = lambda x: ''.join([{'A':'T', 'C':'G', 'G':'C', 'T':'A'}[B] for B in x][::-1])
     if len(reads_files) == 1:
         with open(reads_files[0]) as f:
             lines = f.readlines()
