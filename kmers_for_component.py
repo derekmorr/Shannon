@@ -19,6 +19,8 @@ reverse_complement = lambda x: ''.join([D[B] for B in x[::-1]])
 
 
 def rc(lines, out_q):
+    """computes the single-stranded reverse complement of each line in line.
+    Puts the output in out_q."""
     nl = copy.deepcopy(lines)
     for (i, line) in enumerate(lines):
         nl[i] = (reverse_complement(line.strip()))
@@ -96,6 +98,8 @@ def par_read(reads_files, double_stranded, nJobs):
 
 
 def par_SE_rc(reads, nJobs):
+    """Computes the reverse complement for single-ends. Does this in parallel, running
+    nJobs worker processes in parallel."""
     chunk = int(math.ceil(len(reads)/float(nJobs)))
     temp_q = multiprocessing.Queue()
     procs = [multiprocessing.Process(target=rc, args=(reads[x*chunk:(x+1)*chunk], temp_q)) for x in range(nJobs)]
@@ -109,6 +113,8 @@ def par_SE_rc(reads, nJobs):
 
 
 def par_PE_rc(reads_1, reads_2, double_stranded, nJobs):
+    """Computes the reverse complement for paired-ends. Does this in parallel, running
+    nJobs worker processes in parallel."""
     chunk = int(math.ceil(len(reads_1)/float(nJobs)))
     temp_q = multiprocessing.Queue()
     procs = [multiprocessing.Process(target=rc_mate_ds, args=(reads_1[x*chunk:(x+1)*chunk], reads_2[x*chunk:(x+1)*chunk], double_stranded, temp_q)) for x in range(nJobs)]
@@ -127,7 +133,7 @@ def kmers_for_component(k1mer_dictionary, reads, reads_files, directory_name,
                         contig_file_extension, get_partition_k1mers, double_stranded=True,
                         paired_end=False, repartition=False, partition_size=500, overload=1.5,
                         K=24, gpmetis_path='gpmetis', penalty=5, only_reads=False, inMem=False, nJobs=1):
-    """This fuction runs gpmetis on the components above a threshold size.  It then creates a dictionary called
+    """This function runs gpmetis on the components above a threshold size.  It then creates a dictionary called
     k1mers2component {k1mer : component}.  It then sends any reads that share a kmer with a component to that component.
     It then cycles through the k1mer file and outputs the k1mers along with their weights to a file for each component.
     It then creates a kmers2component dictionary.  It then outputs a kmers file for each component.
