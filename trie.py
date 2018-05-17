@@ -16,8 +16,5 @@ def in_trie(trie, word):
             current_dict = current_dict[letter]
         else:
             return False
-    else:
-        if _end in current_dict:
-            return True
-        else:
-            return False
+
+    return _end in current_dict
