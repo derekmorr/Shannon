@@ -141,12 +141,6 @@ if '--compare' in n_inp:
     ref_file = os.path.abspath(ref_file)
     n_inp = n_inp[:ind1] + n_inp[ind1+2:]
 
-# if '--strand_specific' in n_inp:
-#     ind1 = n_inp.index('--strand_specific')
-#     double_stranded = False
-#     n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-#     print('OPTIONS --strand_specific: Single-stranded mode enabled')
-
 parser = ArgumentParser(sys.argv[1:])
 if parser.namespace.strand_specific:
     double_stranded = False
@@ -154,34 +148,10 @@ if parser.namespace.strand_specific:
 for line in parser.output:
     print(line)
 
-if '--filter_FP' in n_inp:
-    ind1 = n_inp.index('--filter_FP')
-    filter_FP_flag = True
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --filter_FP: False-positive filtering enabled')
+inMem = parser.namespace.inMem
+inDisk = parser.namespace.inDisk
 
-if '--inMem' in n_inp:
-    ind1 = n_inp.index('--inMem')
-    inMem = True
-    inDisk = False
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --inMem: In Memory mode enabled')
-
-if '--inDisk' in n_inp:
-    ind1 = n_inp.index('--inDisk')
-    inMem = False
-    inDisk = True
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --inDisk: In Memory mode disabled')
-
-if '--filter_FP' in n_inp:
-    ind1 = n_inp.index('--filter_FP')
-    filter_FP_flag = True
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    if inDisk:
-        print('OPTIONS --filter_FP: False-positive filtering enabled')
-    else:
-        print('OPTIONS --filter_FP: INCOMPATIBLE with inMem mode')
+filter_FP_flag = parser.namespace.filter_FP_flag
 
 
 if '--ss' in n_inp:
@@ -197,19 +167,9 @@ if '-s' in n_inp:
     n_inp = n_inp[:ind1] + n_inp[ind1+1:]
     print('OPTIONS -s: Single-stranded mode enabled')
 
-
-if '-p' in n_inp:
-    ind1 = n_inp.index('-p')
-    nJobs = int(n_inp[ind1+1])
-    n_inp = n_inp[:ind1] + n_inp[ind1+2:]
-    run_parallel = True
-    print('OPTIONS -p: Running parallel with ' + str(nJobs) + ' jobs.')
-
-if '--partition' in n_inp:
-    ind1 = n_inp.index('--partition')
-    partition_size = int(n_inp[ind1+1])
-    n_inp = n_inp[:ind1] + n_inp[ind1+2:]
-    print('OPTIONS --partition: Partition size set to ' + str(partition_size))
+nJobs = parser.namespace.nJobs
+run_parallel = parser.namespace.run_parallel
+partition_size = parser.namespace.partition_size
 
 if '--only_reads' in n_inp:
     ind1 = n_inp.index('--only_reads')
@@ -217,11 +177,7 @@ if '--only_reads' in n_inp:
     print('OPTIONS --only_reads: Reads are partitioned but kmers are recomputed.')
     only_reads = True
 
-if '-K' in n_inp:
-    ind1 = n_inp.index('-K')
-    K = int(n_inp[ind1+1])
-    n_inp = n_inp[:ind1] + n_inp[ind1+2:]
-    print('OPTIONS -K: Kmer size set to ' + str(K))
+K = parser.namespace.kmer_size
 
 if '--kmer_hard_cutoff' in n_inp:
     ind1 = n_inp.index('--kmer_hard_cutoff')
@@ -235,19 +191,6 @@ if '--kmer_soft_cutoff' in n_inp:
     hyp_min_weight = int(n_inp[ind1+1])
     n_inp = n_inp[:ind1] + n_inp[ind1+2:]
     print('OPTIONS --kmer_soft_cutoff: Kmer soft cutoff set to ' + str(hyp_min_weight))
-
-
-# if '-o' in n_inp:
-#     ind1 = n_inp.index('-o')
-#     comp_directory_name = n_inp[ind1+1]
-#     comp_directory_name = os.path.abspath(comp_directory_name)
-#     n_inp = n_inp[:ind1] + n_inp[ind1+2:]
-#     if os.path.isdir(comp_directory_name) and os.listdir(comp_directory_name):
-#         print('ERROR: Output directory specified with -o needs to be an empty or non-existent directory')
-#         exit_now = True
-# else:
-#     print('ERROR: Output directory needed. Use -o flag, which is mandatory.')
-#     exit_now = True
 
 reads_files = []
 
@@ -274,20 +217,8 @@ if reads_files[0][-1] == 'q':  # Fastq mode
     fastq = True
     run_quorum = True
 
-
-if '--fastq' in n_inp:
-    ind1 = n_inp.index('--fastq')
-    run_quorum = True
-    fastq = True
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --fastq: Input is fastq format')
-
-if '--fasta' in n_inp:
-    ind1 = n_inp.index('--fasta')
-    run_quorum = False
-    fastq = False
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --fasta: Input is fasta format')
+fastq = parser.fastq
+run_quorum = parser.run_quorum
 
 if '--kallisto_cutoff' in n_inp:
     ind1 = n_inp.index('--kallisto_cutoff')
@@ -306,6 +237,8 @@ if n_inp:
 if exit_now or parser.exit_now:
     print('Try running python shannon.py --help for a short manual')
     sys.exit()
+
+comp_directory_name = parser.comp_directory_name
 
 mkdir(comp_directory_name)
 
