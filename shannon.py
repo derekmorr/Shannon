@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import copy
 import logging
 import math
@@ -17,6 +19,8 @@ from process_concatenated_fasta import process_concatenated_fasta
 from extension_correction import extension_correction
 from operator import itemgetter
 from install_tests import test_install, test_install_gnu_parallel, test_install_kallisto
+
+from cli import ArgumentParser
 
 # Set Paths
 shannon_dir = os.path.dirname(os.path.abspath(sys.argv[0])) + '/'
@@ -137,11 +141,19 @@ if '--compare' in n_inp:
     ref_file = os.path.abspath(ref_file)
     n_inp = n_inp[:ind1] + n_inp[ind1+2:]
 
-if '--strand_specific' in n_inp:
-    ind1 = n_inp.index('--strand_specific')
+# if '--strand_specific' in n_inp:
+#     ind1 = n_inp.index('--strand_specific')
+#     double_stranded = False
+#     n_inp = n_inp[:ind1] + n_inp[ind1+1:]
+#     print('OPTIONS --strand_specific: Single-stranded mode enabled')
+
+namespace = ArgumentParser.parse(sys.argv[1:])
+if namespace.strand_specific:
     double_stranded = False
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --strand_specific: Single-stranded mode enabled')
+
+output = ArgumentParser.generate_output(namespace)
+for line in output:
+    print(line)
 
 if '--filter_FP' in n_inp:
     ind1 = n_inp.index('--filter_FP')
@@ -226,18 +238,26 @@ if '--kmer_soft_cutoff' in n_inp:
     print('OPTIONS --kmer_soft_cutoff: Kmer soft cutoff set to ' + str(hyp_min_weight))
 
 
-if '-o' in n_inp:
-    ind1 = n_inp.index('-o')
-    comp_directory_name = n_inp[ind1+1]
-    comp_directory_name = os.path.abspath(comp_directory_name)
-    n_inp = n_inp[:ind1] + n_inp[ind1+2:]
+# if '-o' in n_inp:
+#     ind1 = n_inp.index('-o')
+#     comp_directory_name = n_inp[ind1+1]
+#     comp_directory_name = os.path.abspath(comp_directory_name)
+#     n_inp = n_inp[:ind1] + n_inp[ind1+2:]
+#     if os.path.isdir(comp_directory_name) and os.listdir(comp_directory_name):
+#         print('ERROR: Output directory specified with -o needs to be an empty or non-existent directory')
+#         exit_now = True
+# else:
+#     print('ERROR: Output directory needed. Use -o flag, which is mandatory.')
+#     exit_now = True
+
+if namespace.output:
+    comp_directory_name = os.path.abspath(namespace.output)
     if os.path.isdir(comp_directory_name) and os.listdir(comp_directory_name):
         print('ERROR: Output directory specified with -o needs to be an empty or non-existent directory')
         exit_now = True
 else:
     print('ERROR: Output directory needed. Use -o flag, which is mandatory.')
     exit_now = True
-
 
 reads_files = []
 
