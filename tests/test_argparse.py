@@ -9,20 +9,20 @@ class ArgParserTests(unittest.TestCase):
 
     def test_version(self):
       args = ["--version"]
-      namespace = ArgumentParser.parse(args)
-      self.assertTrue(namespace.version)
+      parser = ArgumentParser(args)
+      self.assertTrue(parser.namespace.version)
     
     def test_indisk(self):
         args = ["--inDisk"]
-        namespace = ArgumentParser.parse(args)
-        self.assertTrue(namespace.inDisk)
-        self.assertFalse(namespace.inMem)  # if inDisk, the inMem must be False
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.namespace.inDisk)
+        self.assertFalse(parser.namespace.inMem)  # if inDisk, the inMem must be False
     
     def test_inmemory(self):
         args = ["--inMem"]
-        namespace = ArgumentParser.parse(args)
-        self.assertTrue(namespace.inMem)
-        self.assertFalse(namespace.inDisk)  # if inMem, then inDisk must be False
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.namespace.inMem)
+        self.assertFalse(parser.namespace.inDisk)  # if inMem, then inDisk must be False
 
     # def test_parallel(self):
     #     args = ["-p 64"]
@@ -55,16 +55,27 @@ class ArgParserTests(unittest.TestCase):
 
     def test_strand_specific(self):
         args = ["--strand_specific"]
-        namespace = ArgumentParser.parse(args)
-        self.assertTrue(namespace.strand_specific)
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.namespace.strand_specific)
 
     def test_strand_specific_ouput(self):
         args = ["--strand_specific"]
-        namespace = ArgumentParser.parse(args)
-        output = ArgumentParser.generate_output(namespace)
-        self.assertIn("OPTIONS --strand_specific: Single-stranded mode enabled", output)
+        parser = ArgumentParser(args)
+        self.assertIn("OPTIONS --strand_specific: Single-stranded mode enabled", parser.output)
 
     def test_output_dir(self):
         args = ["-o", "/blah"]
-        namespace = ArgumentParser.parse(args)
-        self.assertEquals(namespace.output, "/blah")
+        parser = ArgumentParser(args)
+        self.assertEquals(parser.namespace.output_dir, "/blah")
+
+    def test_exit_now_if_output_dir_exists(self):
+        """because / exists, exit_now should be True"""
+        args = ["-o", "/"]
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.exit_now)
+
+    def test_not_exit_now_if_output_dir_doesnt_exists(self):
+        """because (presumably) /foobar does not exist, exit_not should be False"""
+        args = ["-o", "/foobar"]
+        parser = ArgumentParser(args)
+        self.assertFalse(parser.exit_now)

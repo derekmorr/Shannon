@@ -147,12 +147,11 @@ if '--compare' in n_inp:
 #     n_inp = n_inp[:ind1] + n_inp[ind1+1:]
 #     print('OPTIONS --strand_specific: Single-stranded mode enabled')
 
-namespace = ArgumentParser.parse(sys.argv[1:])
-if namespace.strand_specific:
+parser = ArgumentParser(sys.argv[1:])
+if parser.namespace.strand_specific:
     double_stranded = False
 
-output = ArgumentParser.generate_output(namespace)
-for line in output:
+for line in parser.output:
     print(line)
 
 if '--filter_FP' in n_inp:
@@ -250,15 +249,6 @@ if '--kmer_soft_cutoff' in n_inp:
 #     print('ERROR: Output directory needed. Use -o flag, which is mandatory.')
 #     exit_now = True
 
-if namespace.output:
-    comp_directory_name = os.path.abspath(namespace.output)
-    if os.path.isdir(comp_directory_name) and os.listdir(comp_directory_name):
-        print('ERROR: Output directory specified with -o needs to be an empty or non-existent directory')
-        exit_now = True
-else:
-    print('ERROR: Output directory needed. Use -o flag, which is mandatory.')
-    exit_now = True
-
 reads_files = []
 
 if '--left' in n_inp and '--right' in n_inp:
@@ -313,7 +303,7 @@ if '--kallisto_cutoff' in n_inp:
 if n_inp:
     print('OPTIONS WARNING: Following options not parsed: ' + " ".join(n_inp))
 
-if exit_now:
+if exit_now or parser.exit_now:
     print('Try running python shannon.py --help for a short manual')
     sys.exit()
 
