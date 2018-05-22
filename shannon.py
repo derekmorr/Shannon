@@ -126,12 +126,10 @@ n_inp = sys.argv[1:]
 if '--help' in n_inp:
     with open('manual.md', 'r') as fin:
         print(fin.read())
-    exit_now = True
     sys.exit()
 
 if parser.namespace.version:
     print_message()
-    exit_now = True
     sys.exit()
 
 if '--compare' in n_inp:
