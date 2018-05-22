@@ -40,7 +40,6 @@ inMem = False
 inDisk = not inMem
 
 # For jellyfish
-double_stranded = True
 run_jellyfish = True
 paired_end = False  # Automatically set if command line is used
 jellyfish_kmer_cutoff = 1
@@ -64,13 +63,10 @@ get_partition_kmers = True
 overload = 2
 K = 24
 penalty = 5
-nJobs = 1
 
 # General runtime options
 run_parallel = False
 compare_ans = False
-only_reads = False  # Use only the reads from partitioning, not the kmers
-filter_FP_flag = False
 fastq = False
 run_quorum = False
 run_kallisto = False
@@ -120,6 +116,11 @@ def mkdir(dirname):
 
 print_message()
 exit_now = test_install(jellyfish_path, gpmetis_path)
+
+parser = ArgumentParser(sys.argv[1:])
+nJobs = parser.namespace.nJobs
+double_stranded = not parser.namespace.single_stranded
+
 # Read input from terminal
 n_inp = sys.argv[1:]
 if '--help' in n_inp:
@@ -128,7 +129,7 @@ if '--help' in n_inp:
     exit_now = True
     sys.exit()
 
-if '--version' in n_inp:
+if parser.namespace.version:
     print_message()
     exit_now = True
     sys.exit()
@@ -140,7 +141,6 @@ if '--compare' in n_inp:
     ref_file = os.path.abspath(ref_file)
     n_inp = n_inp[:ind1] + n_inp[ind1+2:]
 
-parser = ArgumentParser(sys.argv[1:])
 if parser.namespace.strand_specific:
     double_stranded = False
 
@@ -152,29 +152,10 @@ inDisk = parser.namespace.inDisk
 
 filter_FP_flag = parser.namespace.filter_FP_flag
 
-
-if '--ss' in n_inp:
-    ind1 = n_inp.index('--ss')
-    double_stranded = False
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --ss: Single-stranded mode enabled')
-
-
-if '-s' in n_inp:
-    ind1 = n_inp.index('-s')
-    double_stranded = False
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS -s: Single-stranded mode enabled')
-
 nJobs = parser.namespace.nJobs
 run_parallel = parser.namespace.run_parallel
 partition_size = parser.namespace.partition_size
-
-if '--only_reads' in n_inp:
-    ind1 = n_inp.index('--only_reads')
-    n_inp = n_inp[:ind1] + n_inp[ind1+1:]
-    print('OPTIONS --only_reads: Reads are partitioned but kmers are recomputed.')
-    only_reads = True
+only_reads = parser.namespace.only_reads
 
 K = parser.namespace.kmer_size
 

@@ -21,7 +21,7 @@ class ArgumentParser(object):
         parser.add_argument("--inDisk", action="store_true", help="use disk to transfer data between components.")
         parser.add_argument("--inMem", action="store_true", help="use memory to transfer data between components.")
 
-        parser.add_argument("-p", type=int, dest="nJobs", help="number of parallel worker processes.")
+        parser.add_argument("-p", type=int, dest="nJobs", default=1, help="number of parallel worker processes.")
         parser.add_argument("--strand_specific", action="store_true", help="Enable single-stranded mode")
 
         parser.add_argument("--fastq", action="store_true", help="Use FASTQ format")
@@ -33,8 +33,14 @@ class ArgumentParser(object):
         # XXX: think about using required=True
         parser.add_argument("-o", dest="output_dir", help="output directory. Must not exist.")
 
-        parser.add_argument("--filter_FP", action="store_true", dest="filter_FP_flag",
+        parser.add_argument("--filter_FP", action="store_true", dest="filter_FP_flag", default = False,
                             help="Enable false-positive filtering. This option is incompatible with --inMem.")
+
+        parser.add_argument("-s", "--ss", action="store_true", dest="single_stranded", default=False,
+                            help="Enable single-stranded mode.")
+
+        parser.add_argument("--only_reads", action="store_true", default=False,
+                            help='Reads are partitioned but kmers are recomputed.')
 
         self.namespace = parser.parse_args(self.args)
         return self.namespace
@@ -91,5 +97,11 @@ class ArgumentParser(object):
         
         if self.namespace.filter_FP_flag and self.namespace.inMem:
             self.output.append('OPTIONS --filter_FP: INCOMPATIBLE with inMem mode')
+
+        if self.namespace.single_stranded:
+            self.output.append('OPTIONS -s: Single-stranded mode enabled')
+
+        if self.namespace.only_reads:
+            self.output.append('OPTIONS --only_reads: Reads are partitioned but kmers are recomputed.')
 
         return self.output

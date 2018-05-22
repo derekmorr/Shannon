@@ -29,6 +29,12 @@ class ArgParserTests(unittest.TestCase):
         parser = ArgumentParser(args)
         self.assertTrue(parser.namespace.run_parallel)
         self.assertEquals(parser.namespace.nJobs, 64)
+
+    def test_njobs_default(self):
+        """if -p is not passed, the parser defaults to 1 job."""
+        args = []
+        parser = ArgumentParser(args)
+        self.assertEquals(1, parser.namespace.nJobs)
     
     # def test_left_and_right(self):
     #     args = ["--left", "left_file", "--right", "right_file"]
@@ -119,6 +125,11 @@ class ArgParserTests(unittest.TestCase):
         parser = ArgumentParser(args)
         self.assertIn('OPTIONS --filter_FP: INCOMPATIBLE with inMem mode', parser.output)
     
+    def test_filter_false_positives_default(self):
+        args = []
+        parser = ArgumentParser(args)
+        self.assertFalse(parser.namespace.filter_FP_flag)
+
     def test_partition(self):
         args = ['--partition', '8']
         parser = ArgumentParser(args)
@@ -129,3 +140,29 @@ class ArgParserTests(unittest.TestCase):
         args = []
         parser = ArgumentParser(args)
         self.assertTrue(parser.namespace.partition_size)  # check that a default is present, not the specific value.
+
+    def test_single_stranded(self):
+        args = ["-s"]
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.namespace.single_stranded)
+
+        args = ["--ss"]
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.namespace.single_stranded)
+
+    def test_defaults_to_double_stranded(self):
+        """if neither -s or --ss are passed, the parser defaults to double_stranded mode."""
+        args = []
+        parser = ArgumentParser(args)
+        self.assertFalse(parser.namespace.single_stranded)
+    
+    def test_only_reads(self):
+        args = ['--only_reads']
+        parser = ArgumentParser(args)
+        self.assertTrue(parser.namespace.only_reads)
+    
+    def test_only_reads_default(self):
+        """if --only_reads isn't set, it should default to False."""
+        args = []
+        parser = ArgumentParser(args)
+        self.assertFalse(parser.namespace.only_reads)
