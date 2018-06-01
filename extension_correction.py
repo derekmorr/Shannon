@@ -7,9 +7,11 @@ import sys
 import time
 from operator import itemgetter
 from collections import defaultdict
+from dna import DNA
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
+dna = DNA()
 
 
 class Counter(object):
@@ -34,7 +36,7 @@ reverse_complement = \
 def rc(lines, out_q):
     nl = copy.deepcopy(lines)
     for (i, line) in enumerate(lines):
-        nl[i] = (reverse_complement(line.strip())+'\n')
+        nl[i] = (dna.reverse_complement(line.strip())+'\n')
     out_q.put(nl)
 
 
@@ -43,9 +45,9 @@ def rc_mate_ds(reads_1, reads_2, double_stranded, out_q):
     if double_stranded:
         nr2 = copy.deepcopy(reads_2)
     for (i, read_1) in enumerate(reads_1):
-        nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())+'\n']
+        nr1[i] = [reads_1[i], dna.reverse_complement(reads_2[i].strip())+'\n']
         if double_stranded:
-            nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())+'\n']
+            nr2[i] = [reads_2[i], dna.reverse_complement(reads_1[i].strip())+'\n']
     if double_stranded:
         nr1.extend(nr2)
     out_q.put(nr1)
