@@ -8,6 +8,11 @@ class DNATests(unittest.TestCase):
     output = dna.reverse_complement("ATGC")
     self.assertEquals("GCAT", output)
   
+  def test_reverse_complement_no_n(self):
+    dna = DNA()
+    output = dna.reverse_complement_no_n("ATGC")
+    self.assertEquals("GCAT", output)
+
   def test_reverse_complement_n(self):
     dna = DNA()
     output = dna.reverse_complement("GNA")
