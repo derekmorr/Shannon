@@ -21,18 +21,6 @@ def reverse_complement(bases):
         bases = re.sub(ch1, ch2, bases)
     return bases[::-1].upper()
 
-class Counter():
-    def __init__(self, name, report_length):
-        self.name = name
-        self.count = 0
-        self.report_length = report_length
-
-    def increment(self):
-        self.count += 1
-        if self.count % self.report_length == 0:
-            print "{:s}: {:s}, processed {:d}".format(time.asctime(), self.name, self.count)
-
-
 def find_kmers(contig,k,ds):
     '''find the kmers of a contig of size k with ds denoting double stranded)'''
     rmer_list = []
@@ -136,15 +124,11 @@ def main():
         arguments = ['asd', 'in_fasta', 'out_fasta', '-d']
     else:
         arguments = sys.argv
-    #pdb.set_trace()
     ds = '-d' in arguments
     arguments = [a for a in arguments if len(a) > 0 and a[0] != '-'][1:]
 
     infile, outfile = arguments[:2]
-    #pdb.set_trace()
     find_reps(infile, outfile, ds)
 
 if __name__ == '__main__':
-    #c1 = Counter("Loading", 10**6)
-    #c2 = Counter("Correction", 10**6)
     main()

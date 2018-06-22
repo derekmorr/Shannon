@@ -3,6 +3,7 @@ import sys
 import re
 import pdb,math
 import numpy
+from counter import Counter
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
@@ -10,31 +11,15 @@ rmer_to_contig = {}
 contig_to_rmer = {}
 cmer_to_contig = {}
 
-class Counter():
-    def __init__(self, name, report_length):
-        self.name = name
-        self.count = 0
-        self.report_length = report_length
-
-    def increment(self):
-        self.count += 1
-        if self.count % self.report_length == 0:
-            print "{:s}: {:s}, processed {:d}".format(time.asctime(), self.name, self.count)
 
 c1 = Counter("Loading", 10**6)
 c2 = Counter("Correction", 10**6)
 
-reverse_complement = lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
-
-'''def reverse_complement(bases):
-    replacements = [('A', 't'), ('T', 'a'), ('C', 'g'), ('G', 'c')]
-    for ch1, ch2 in replacements:
-        bases = re.sub(ch1, ch2, bases)
-    return bases[::-1].upper()'''
+reverse_complement = \
+    lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
 
 def argmax(lst, key):
-    """Returns the element x in LST that maximizes KEY(x).
-    """
+    """Returns the element x in LST that maximizes KEY(x)."""
     best = lst[0]
     for x in lst[1:]:
         if key(x) > key(best):
@@ -45,13 +30,11 @@ def load_kmers(infile, double_stranded):
     """Loads the list of K-mers and copycounts and determines K.
     Returns (kmers, K).
     """
-    #c1 = Counter("Loading", 10**6)
-    
-
     kmers = {}
     with open(infile) as f:
         for line in f:
-            if len(line) == 0: continue
+            if len(line) == 0:
+                continue
             c1.increment()
             kmer, weight = line.split()
             kmer = kmer.upper()
@@ -70,7 +53,8 @@ def extend(start, extended, unextended, traversed, kmers, K):
     
     while True:
         next_bases = [b for b in BASES if extended(last, b) in kmers and extended(last, b) not in traversed]
-        if len(next_bases) == 0: return [extension,tot_weight,tot_kmer]
+        if len(next_bases) == 0:
+            return [extension,tot_weight,tot_kmer]
         
         next_base = argmax(next_bases, lambda b : kmers[extended(last, b)])
         extension.append(next_base); tot_weight += kmers[extended(last,next_base)]; tot_kmer +=1
@@ -148,9 +132,8 @@ def trim_polyA(contig):
     return contig[startPt:totLen-endPt]
         
         
-def run_correction(infile, outfile, min_weight, min_length,double_stranded):
+def run_correction(infile, outfile, min_weight, min_length, double_stranded):
     f_log = open(outfile+"__ec_log.txt", 'w')
-    #pdb.set_trace()
     print "{:s}: Starting Kmer error correction..".format(time.asctime())
     f_log.write("{:s}: Starting..".format(time.asctime()) + "\n")
     kmers, K = load_kmers(infile, double_stranded)
@@ -164,7 +147,6 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded):
     contig_connections = {}
     components_numbers = {}
     contigs = ["buffer"]
-    #pdb.set_trace()
     while len(heaviest) > 0:
         start_kmer, _ = heaviest.pop()
         if start_kmer in traversed: continue
@@ -176,11 +158,9 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded):
         tot_kmer = right_kmer_no + left_kmer_no + 1;
         avg_wt = tot_wt/max(1,tot_kmer);
         contig = ''.join(reversed(left_extension)) + start_kmer + ''.join(right_extension)
-        #contig = trim_polyA(contig)
 
         r = 12
         duplicate_suspect = duplicate_check(contig, r) #Check whether this contig is significantly represented in a earlier contig. 
-        #pdb.set_trace()
         # The line below is the hyperbola error correction.
         if (not correct_errors) or (len(contig) >= min_length and len(contig)*math.pow(avg_wt,1/4.0) >= 2*min_length*math.pow(min_weight,1/4.0) and not duplicate_suspect):
             f1.write("{:s}\n".format(contig));  contig_index+=1
@@ -213,19 +193,15 @@ def run_correction(infile, outfile, min_weight, min_length,double_stranded):
 
    
 def extension_correction(arguments):
-    #pdb.set_trace()
     double_stranded = '-d' in arguments
     arguments = [a for a in arguments if len(a) > 0 and a[0] != '-']
 
     infile, outfile = arguments[:2]
     min_weight, min_length = int(arguments[2]), int(arguments[3])
-    #pdb.set_trace()
     allowed_kmer_dict = run_correction(infile, outfile, min_weight, min_length, double_stranded)
     return allowed_kmer_dict
 
 if __name__ == '__main__':
-    #c1 = Counter("Loading", 10**6)
-    #c2 = Counter("Correction", 10**6)
     if len(sys.argv) == 1:
         arguments = ['kmers.dict', 'allowed_kmers.dict', '1', '1', '-d']
     else:

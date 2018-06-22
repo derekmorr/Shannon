@@ -23,15 +23,11 @@ def main():
         arguments = ['asd', 'in_fasta', 'out_fasta', '-d']
     else:
         arguments = sys.argv[1:]
-    #pdb.set_trace()
 
     infile, outfile = arguments[:2]
-    #pdb.set_trace()
     reverse_complement_serial(infile, outfile)
 
 if __name__ == '__main__':
-    #c1 = Counter("Loading", 10**6)
-    #c2 = Counter("Correction", 10**6)
     main()
 
 

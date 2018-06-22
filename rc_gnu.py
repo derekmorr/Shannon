@@ -4,7 +4,6 @@ D={'A':'T','C':'G','G':'C','T':'A','N':'N'}
 reverse_complement = lambda x: ''.join([D[B] for B in x][::-1])
 
 def run_cmd(cmd):
-    #print(cmd)
     os.system(cmd)
 
 
@@ -74,11 +73,6 @@ def rc_gnu(infile,tempfile,outfile,nCPU,python_path='python ',shannon_dir=''):
     print(N); print(L)
     return (N,L)
 
-
-
-
-    #pdb.set_trace()
-
 def main():
     if len(sys.argv) == 1:
         arguments = ['asd', 'in_fasta', 'out_fasta', '-d']
@@ -90,8 +84,6 @@ def main():
     rc_gnu(infile,tempfile,outfile,nCPU)
 
 if __name__ == '__main__':
-    #c1 = Counter("Loading", 10**6)
-    #c2 = Counter("Correction", 10**6)
     main()
 
 

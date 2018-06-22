@@ -8,26 +8,15 @@ import time
 from operator import itemgetter
 from collections import defaultdict
 from dna import DNA
+from counter import Counter
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
 dna = DNA()
 
 
-class Counter(object):
-    def __init__(self, name, report_length):
-        self.name = name
-        self.count = 0
-        self.report_length = report_length
-
-    def increment(self):
-        self.count += 1
-        if self.count % self.report_length == 0:
-            print("{:s}: {:s}, processed {:d} kmers".format(time.asctime(), self.name, self.count))
-
-
-c1 = Counter("Loading", 10**6)
-c2 = Counter("Correction", 10**6)
+c1 = Counter("Loading", 10**6, "kmers")
+c2 = Counter("Correction", 10**6, "kmers")
 
 reverse_complement = \
     lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}[B] for B in x][::-1])

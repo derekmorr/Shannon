@@ -3,23 +3,13 @@ import sys
 import re
 import pdb,math
 import numpy
+from counter import Counter
 
 BASES = ['A', 'G', 'C', 'T']
 dont_correct_errors = False
 rmer_to_contig = {}
 contig_to_rmer = {}
 cmer_to_contig = {}
-
-class Counter():
-    def __init__(self, name, report_length):
-        self.name = name
-        self.count = 0
-        self.report_length = report_length
-
-    def increment(self):
-        self.count += 1
-        if self.count % self.report_length == 0:
-            print "{:s}: {:s}, processed {:d}".format(time.asctime(), self.name, self.count)
 
 c1 = Counter("Loading", 10**6)
 c2 = Counter("Correction", 10**6)
@@ -47,8 +37,6 @@ def load_kmers(infile, double_stranded):
     """Loads the list of K-mers and copycounts and determines K.
     Returns (kmers, K).
     """
-    #c1 = Counter("Loading", 10**6)
-    
 
     kmers = {}
     with open(infile) as f:
@@ -109,7 +97,7 @@ def duplicate_check(contig, r = 12, f = 0.5):
                 a[i:i+r] = 1
 
     if 1: #for dup in dup_count:
-        if sum(a)> f* float(len(contig)):
+        if sum(a) > f * float(len(contig)):
             return True
         else:
             return False
@@ -386,8 +374,6 @@ def extension_correction(arguments):
     return allowed_kmer_dict
 
 if __name__ == '__main__':
-    #c1 = Counter("Loading", 10**6)
-    #c2 = Counter("Correction", 10**6)
     if len(sys.argv) == 1:
         arguments = ['kmers.dict', 'allowed_kmers.dict', '1', '1', '-d']
     else:

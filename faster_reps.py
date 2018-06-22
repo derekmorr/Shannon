@@ -20,18 +20,6 @@ def reverse_complement(bases):
     return bases[::-1].upper()
 
 
-class Counter(object):
-    def __init__(self, name, report_length):
-        self.name = name
-        self.count = 0
-        self.report_length = report_length
-
-    def increment(self):
-        self.count += 1
-        if self.count % self.report_length == 0:
-            print "{:s}: {:s}, processed {:d}".format(time.asctime(), self.name, self.count)
-
-
 def argmax(lst, key):
     """Returns the element x in LST that maximizes KEY(x).
     """
