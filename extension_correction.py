@@ -18,9 +18,6 @@ dna = DNA()
 c1 = Counter("Loading", 10**6, "kmers")
 c2 = Counter("Correction", 10**6, "kmers")
 
-reverse_complement = \
-    lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}[B] for B in x][::-1])
-
 
 def rc(lines, out_q):
     nl = copy.deepcopy(lines)
@@ -152,9 +149,6 @@ def par_load(lines, double_stranded, polyA_del, out_q):
     """Loads the list of K-mers and copycounts and determines K.
     Returns (kmers, K) in out_q.
     """
-    reverse_complement = \
-        lambda x: ''.join([{'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}[B] for B in x][::-1])
-
     # don't use a defaultdict here because it's not pickle-able.
     # "d" has to be pickle-able because it's put into out_q.
     d = {}
@@ -164,7 +158,7 @@ def par_load(lines, double_stranded, polyA_del, out_q):
             continue
         d[kmer] = d.get(kmer, 0) + float(weight)
         if double_stranded:
-            rc = reverse_complement(kmer)
+            rc = dna.reverse_complement_no_n(kmer)
             d[rc] = d.get(rc, 0) + float(weight)
     out_q.put(d)
 
@@ -211,7 +205,7 @@ def load_kmers(infile, double_stranded, polyA_del=True):
             weight = float(weight)
             kmers[kmer] += weight
             if double_stranded:
-                kmers[reverse_complement(kmer)] += weight
+                kmers[dna.reverse_complement(kmer)] += weight
     K = len(kmers.keys()[0])
     return kmers, K
 

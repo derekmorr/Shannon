@@ -6,6 +6,9 @@ import os.path
 import copy
 import multiprocessing
 from weight_updated_graph import weight_updated_graph
+from dna import DNA
+
+dna = DNA()
 
 
 def run_cmd(s1):
@@ -13,17 +16,12 @@ def run_cmd(s1):
     os.system(s1)
 
 
-D = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
-
-reverse_complement = lambda x: ''.join([D[B] for B in x[::-1]])
-
-
 def rc(lines, out_q):
     """computes the single-stranded reverse complement of each line in line.
     Puts the output in out_q."""
     nl = copy.deepcopy(lines)
     for (i, line) in enumerate(lines):
-        nl[i] = (reverse_complement(line.strip()))
+        nl[i] = (dna.reverse_complement(line.strip()))
     out_q.put(nl)
 
 
@@ -32,9 +30,9 @@ def rc_mate_ds(reads_1, reads_2, double_stranded, out_q):
     if double_stranded:
         nr2 = copy.deepcopy(reads_2)
     for (i, read_1) in enumerate(reads_1):
-        nr1[i] = [reads_1[i], reverse_complement(reads_2[i].strip())]
+        nr1[i] = [reads_1[i], dna.reverse_complement(reads_2[i].strip())]
         if double_stranded:
-            nr2[i] = [reads_2[i], reverse_complement(reads_1[i].strip())]
+            nr2[i] = [reads_2[i], dna.reverse_complement(reads_1[i].strip())]
     if double_stranded:
         nr1.extend(nr2)
     out_q.put(nr1)
