@@ -4,6 +4,7 @@ import re
 import pdb,math
 import numpy
 from sets import Set
+from dna import DNA
 
 BASES = ['A', 'G', 'C', 'T']
 r=18
@@ -12,14 +13,7 @@ contig_to_rmer = {}
 
 cmer_to_contig = {}
 
-def reverse_complement(bases):
-    """Return the reverse complement of BASES. Assumes BASES is
-    all uppercase.
-    """
-    replacements = [('A', 't'), ('T', 'a'), ('C', 'g'), ('G', 'c')]
-    for ch1, ch2 in replacements:
-        bases = re.sub(ch1, ch2, bases)
-    return bases[::-1].upper()
+dna = DNA()
 
 def find_kmers(contig,k,ds):
     '''find the kmers of a contig of size k with ds denoting double stranded)'''
@@ -27,7 +21,7 @@ def find_kmers(contig,k,ds):
     for i in range(0, len(contig)-r+1):
         rmer_list.append(contig[i:i+r])
         if ds:
-            rmer_list.append(reverse_complement(contig[i:i+r]))
+            rmer_list.append(dna.reverse_complement_no_n(contig[i:i+r]))
     return rmer_list
 
 
@@ -74,7 +68,7 @@ def duplicate_check(contigs, contig_name, ds, f = 0.99):
             for dup in imp_dups_set.intersection(rmer_to_contig[rmer]):
                 imp_dups[dup][i:i+r] = 1
         if ds:
-            rmer_rc=reverse_complement(rmer)
+            rmer_rc = dna.reverse_complement_no_n(rmer)
             if rmer_rc in rmer_to_contig:
                 for dup in imp_dups_set.intersection(rmer_to_contig[rmer]):
                     imp_dups[dup][i:i+r] = 1
