@@ -5,6 +5,7 @@ import pdb,math
 import numpy
 from sets import Set
 from dna import DNA
+from junkdrawer import JunkDrawer
 
 BASES = ['A', 'G', 'C', 'T']
 r=18
@@ -14,6 +15,7 @@ contig_to_rmer = {}
 cmer_to_contig = {}
 
 dna = DNA()
+argmax = JunkDrawer.argmax
 
 def find_kmers(contig,k,ds):
     '''find the kmers of a contig of size k with ds denoting double stranded)'''
@@ -24,16 +26,6 @@ def find_kmers(contig,k,ds):
             rmer_list.append(dna.reverse_complement_no_n(contig[i:i+r]))
     return rmer_list
 
-
-
-def argmax(lst, key):
-    """Returns the element x in LST that maximizes KEY(x).
-    """
-    best = lst[0]
-    for x in lst[1:]:
-        if key(x) > key(best):
-            best = x
-    return best
 
 def duplicate_check(contigs, contig_name, ds, f = 0.99):
     # To add: if rmer in the contig multiple times, only increment the dup-contig once for each time its in dup-contig

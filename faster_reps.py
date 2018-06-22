@@ -1,39 +1,22 @@
 import time
 import sys
 import re
+from junkdrawer import JunkDrawer
+from dna import DNA
 
-BASES = ['A', 'G', 'C', 'T']
 r = 24
 rmer_to_contig = {}
 contig_to_rmer = {}
 
 cmer_to_contig = {}
 
-
-def reverse_complement(bases):
-    """Return the reverse complement of BASES. Assumes BASES is
-    all uppercase.
-    """
-    replacements = [('A', 't'), ('T', 'a'), ('C', 'g'), ('G', 'c')]
-    for ch1, ch2 in replacements:
-        bases = re.sub(ch1, ch2, bases)
-    return bases[::-1].upper()
-
-
-def argmax(lst, key):
-    """Returns the element x in LST that maximizes KEY(x).
-    """
-    best = lst[0]
-    for x in lst[1:]:
-        if key(x) > key(best):
-            best = x
-    return best
-
+dna = DNA()
+argmax = JunkDrawer.argmax
 
 def duplicate_check_ends(contigs, contig_name, rc):
     contig = contigs[contig_name]
     if rc:
-        contig = reverse_complement(contig)
+        contig = dna.reverse_complement_no_n(contig)
     first_rmer = contig[:r]
     last_rmer = contig[-r:]
     if first_rmer in rmer_to_contig and last_rmer in rmer_to_contig:

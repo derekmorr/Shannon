@@ -4,6 +4,8 @@ import re
 import pdb,math
 import numpy
 from counter import Counter
+from dna import DNA
+from junkdrawer import JunkDrawer
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
@@ -11,20 +13,11 @@ rmer_to_contig = {}
 contig_to_rmer = {}
 cmer_to_contig = {}
 
+dna = DNA()
+argmax = JunkDrawer.argmax
 
 c1 = Counter("Loading", 10**6)
 c2 = Counter("Correction", 10**6)
-
-reverse_complement = \
-    lambda x: ''.join([{'A':'T','C':'G','G':'C','T':'A'}[B] for B in x][::-1])
-
-def argmax(lst, key):
-    """Returns the element x in LST that maximizes KEY(x)."""
-    best = lst[0]
-    for x in lst[1:]:
-        if key(x) > key(best):
-            best = x
-    return best
 
 def load_kmers(infile, double_stranded):
     """Loads the list of K-mers and copycounts and determines K.
@@ -41,7 +34,7 @@ def load_kmers(infile, double_stranded):
             weight = (float(weight))
             kmers[kmer] = kmers.get(kmer,0)+weight
             if double_stranded:
-                kmers[reverse_complement(kmer)] = kmers.get(reverse_complement(kmer),0)+weight
+                kmers[dna.reverse_complement_no_n(kmer)] = kmers.get(dna.reverse_complement_no_n(kmer),0)+weight
 
     K = len(kmers.keys()[0])
     return kmers, K

@@ -9,10 +9,12 @@ from operator import itemgetter
 from collections import defaultdict
 from dna import DNA
 from counter import Counter
+from junkdrawer import JunkDrawer
 
 BASES = ['A', 'G', 'C', 'T']
 correct_errors = True
 dna = DNA()
+argmax = JunkDrawer.argmax
 
 
 c1 = Counter("Loading", 10**6, "kmers")
@@ -134,15 +136,6 @@ def lowComplexity(kmer):
     nC = sum(c == 'C' for c in kmer)
     nG = sum(c == 'G' for c in kmer)
     return max(nA, nC, nG, nT) >= len(kmer) - 2
-
-
-def argmax(lst, key):
-    """Returns the element x in LST that maximizes KEY(x)."""
-    best = lst[0]
-    for x in lst[1:]:
-        if key(x) > key(best):
-            best = x
-    return best
 
 
 def par_load(lines, double_stranded, polyA_del, out_q):
