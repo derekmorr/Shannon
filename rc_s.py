@@ -1,20 +1,20 @@
-import sys,pdb,time, math, multiprocessing, copy
-D={'A':'T','C':'G','G':'C','T':'A','N':'N'}
+import sys
+
+D = {'A':'T', 'C':'G', 'G':'C', 'T':'A', 'N':'N'}
 reverse_complement = lambda x: ''.join([D[B] for B in x][::-1])
-nJobs = 20
 
-
-def reverse_complement_serial(infile,outfile):
+def reverse_complement_serial(infile, outfile):
     reads = []
     if 1: #with open(outfile,'w') as of:
         for line in open(infile):
-            if not line.strip(): continue
+            if not line.strip():
+                continue
             fields = line.strip().split()
-            if fields[0][0]=='>': 
+            if fields[0][0] == '>':
                 reads.append(line.strip())
             else:
                 reads.append(reverse_complement(fields[0]))
-    with open(outfile,'w') as of:
+    with open(outfile, 'w') as of:
         of.write('\n'.join(reads) + '\n')
 
 
